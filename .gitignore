@@ -1,0 +1,6 @@
+.git
+*.pyc
+.coverage
+.htmlcov
+.DS_Store
+.idea

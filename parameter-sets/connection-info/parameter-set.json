@@ -1,0 +1,37 @@
+{
+    "meta" : {
+        "label" : "Parameter set connection-info",
+        "description" : "Preset",
+        "icon" : "icon-puzzle-piece"
+    },
+    
+    "overridable" : false,
+    "inlinable" : true,
+
+    "pluginParams": [
+        {
+            "name": "credentials",
+            "label": "Credentials",
+            "description": "If empty, uses what was set by gcloud auth application-default login",
+            "type": "STRING",
+            "mandatory" : false
+        }
+    ],
+
+    "params": [
+        {
+            "name": "projectId",
+            "label": "Project",
+            "type": "STRING",
+            "description": "If empty, uses what was set by gcloud auth application-default login",
+            "mandatory" : false
+        },
+        {
+            "name": "zone",
+            "label": "Zone",
+            "type": "STRING",
+            "description": "If empty, uses what was set by gcloud auth application-default login",
+            "mandatory" : false
+        }
+    ]
+}

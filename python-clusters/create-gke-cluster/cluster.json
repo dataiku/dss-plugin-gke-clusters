@@ -1,0 +1,94 @@
+{
+    "meta" : {
+        "label" : "Create GKE cluster",
+        "description" : "Create GKE clusters",
+        "icon" : "icon-puzzle-piece"
+    },
+    
+    "architecture" : "KUBERNETES",
+    
+    "params": [
+        {
+            "name": "connectionInfo",
+            "label": "Connection",
+            "type": "PRESET",
+            "parameterSetId" : "connection-info",
+            "mandatory" : true
+        },
+        {
+            "name": "legacyAuth",
+            "label": "Legacy auth",
+            "description": "Use client certificate instead of GCP auth provider",
+            "type": "BOOLEAN",
+            "defaultValue" : false
+        },
+        {
+            "name": "clusterVersion",
+            "label": "Kubernetes version",
+            "type": "STRING",
+            "defaultValue": "1.11.10-gke.4"
+        },
+        {
+            "name": "baseImage",
+            "label": "Base image",
+            "description": "Base DSS image pushed on a repository accessible to GKE (if overriden)",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "repositoryURL",
+            "label": "Repository URL",
+            "description": "URL to the repository, typically gcr.io/project_id (if overriden)",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "network",
+            "label": "Network",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "subNetwork",
+            "label": "Sub-network",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "nodePools",
+            "label": "Node pools",
+            "description": "Node pools to create in the cluster",
+            "type": "PRESETS",
+            "parameterSetId" : "node-pool-request",
+            "mandatory" : true
+        },
+        {
+            "name": "httpLoadBalancing",
+            "label": "HTTP load balancing",
+            "description": "Enable interaction with Google Cloud's load balancing abilities",
+            "type": "BOOLEAN",
+            "defaultValue" : true
+        },
+        {
+            "name": "kubeConfigPath",
+            "label": "Kubectl config path",
+            "description": "If not the $HOME/.kube/config default value",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "userName",
+            "label": "User name",
+            "description": "If not the same as the gcloud user",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "creationSettingsValve",
+            "label": "Custom creation settings",
+            "description": "Additional settings for the cluster creation call, as JSON",
+            "type": "TEXTAREA",
+            "mandatory" : false
+        }
+    ]
+}

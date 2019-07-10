@@ -1,0 +1,81 @@
+{
+    "meta" : {
+        "label" : "Node pool",
+        "description" : "Configuration for a node pool",
+        "icon" : "icon-magic"
+    },
+    
+    "overridable" : false,
+    "inlinable" : true,
+    
+    "pluginParams": [
+    ],
+
+    "params": [
+        {
+            "name": "numNodes",
+            "label": "Number of nodes",
+            "type": "INT",
+            "mandatory" : true,
+            "defaultValue" : 3
+        },
+        {
+            "name": "numNodesAutoscaling",
+            "label": "Enable node autoscaling",
+            "type": "BOOLEAN",
+            "mandatory" : true,
+            "defaultValue" : false
+        },
+        {
+            "name": "minNumNodes",
+            "label": "Min number of nodes",
+            "type": "INT",
+            "mandatory" : true,
+            "defaultValue" : 2,
+            "visibilityCondition" : "model.numNodesAutoscaling"
+        },
+        {
+            "name": "maxNumNodes",
+            "label": "Max number of nodes",
+            "type": "INT",
+            "mandatory" : true,
+            "defaultValue" : 5,
+            "visibilityCondition" : "model.numNodesAutoscaling"
+        },
+        {
+            "name": "oauthScopes",
+            "label": "OAuth scopes",
+            "description": "Additional oauth scopes for the nodes, comma-separated.",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "useGcrIo",
+            "label": "Use gcr.io",
+            "description": "Adds 'https://www.googleapis.com/auth/devstorage.read_only' in the oauth scopes",
+            "type": "BOOLEAN",
+            "mandatory" : false
+        },
+        {
+            "name": "machineType",
+            "label": "Machine type",
+            "description": "Template type for the nodes",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "diskType",
+            "label": "Disk type",
+            "description": "Disk type for the nodes",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
+            "name": "diskSizeGb",
+            "label": "Disk size",
+            "description": "Disk size for the nodes (leave 0 for default)",
+            "type": "INT",
+            "mandatory" : false
+        }
+    ]
+}
