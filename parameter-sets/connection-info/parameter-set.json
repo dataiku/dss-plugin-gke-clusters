@@ -1,7 +1,8 @@
 {
     "meta" : {
         "label" : "GKE connection",
-        "description" : "Settings for a connection to GKE",
+        "pluralLabel" : "GKE connections",
+        "description" : "GKE connection settings",
         "icon" : "icon-link"
     },
     

@@ -1,7 +1,8 @@
 {
     "meta" : {
         "label" : "Node pool",
-        "description" : "Configuration for a GKE node pool",
+        "pluralLabel" : "Node pools",
+        "description" : "Predefined configurations for GKE node pools",
         "icon" : "icon-tasks"
     },
     
