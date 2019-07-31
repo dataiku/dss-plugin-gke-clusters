@@ -15,13 +15,7 @@ def make_overrides(config, kube_config, kube_config_path):
                             }
                         }
     spark_settings = {
-                        "sparkEnabled": True,
-                        "environmentVariables": [
-                            {
-                                "key": "KUBERNETES_AUTH_TRYKUBECONFIG", # otherwise spark will pick the context from the kubeconfig
-                                "value": "false"
-                            }
-                        ]
+                        "sparkEnabled": True
                     }
     return {'spark':spark_settings, 'container':container_settings}
 
