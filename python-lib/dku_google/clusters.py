@@ -431,8 +431,8 @@ class Clusters(object):
             self.zone = default_zone
         else:
             self.zone = zone
-        self.service = discovery.build('container', 'v1', credentials=credentials)
-        self.compute = discovery.build('compute', 'v1', credentials=credentials)
+        self.service = discovery.build('container', 'v1', credentials=credentials, cache_discovery=False)
+        self.compute = discovery.build('compute', 'v1', credentials=credentials, cache_discovery=False)
         
     def get_location(self):
         return "projects/%s/locations/%s" % (self.project_id, self.zone)
