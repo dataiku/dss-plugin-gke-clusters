@@ -82,6 +82,11 @@ class NodePoolBuilder(object):
         if self.disk_size_gb is not None and self.disk_size_gb > 0:
             node_pool['config']['diskSizeGb'] = self.disk_size_gb
         node_pool['config']['oauthScopes'] = self.oauth_scopes
+
+        node_pool["management"] = {
+            "autoUpgrade": True,
+            "autoRepair": True
+        }
         
         if self.enable_autoscaling:
             node_pool['autoscaling'] = {
@@ -187,10 +192,17 @@ class ClusterBuilder(object):
         if self.legacy_auth:
             create_cluster_request_body["cluster"]["legacyAbac"] = {"enabled":True}
             
-        version_chunks = cluster_version.split('.')
-        major_version = int(version_chunks[0])
-        minor_version = int(version_chunks[1])
-        if major_version > 1 or (major_version == 1 and minor_version >= 12):
+        need_issue_certificate = False
+
+        if cluster_version == "latest" or cluster_version == "-":
+            need_issue_certificate = True
+        else:
+            version_chunks = cluster_version.split('.')
+            major_version = int(version_chunks[0])
+            minor_version = int(version_chunks[1])
+            need_issue_certificate = major_version > 1 or (major_version == 1 and minor_version >= 12)
+                
+        if need_issue_certificate:
             create_cluster_request_body["cluster"]["masterAuth"] = {
                                                                         "clientCertificateConfig" : {
                                                                             "issueClientCertificate" : True

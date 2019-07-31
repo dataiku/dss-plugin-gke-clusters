@@ -13,8 +13,9 @@ def get_credentials_from_json_or_file(data):
         parsed = json.loads(data)
         credentials = service_account.Credentials.from_service_account_info(parsed)
     except:
+        logging.exception("Failed to read credentials as JSON, will retry as file")
         if not os.path.exists(data):
-            raise Exception("Credentials data is not json nor a file : %s" % data)
+            raise Exception("Credentials data is neither a valid service account Credential JSON nor a file : %s" % data)
         credentials = service_account.Credentials.from_service_account_file(data)
     _log_get_credentials(credentials)
     return credentials

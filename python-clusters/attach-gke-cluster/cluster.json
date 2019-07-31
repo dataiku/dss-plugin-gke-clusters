@@ -17,37 +17,9 @@
         },
         {
             "name": "clusterId",
-            "label": "GKE cluster",
+            "label": "GKE cluster name",
             "type": "STRING",
             "mandatory" : true
-        },
-        {
-            "name": "legacyAuth",
-            "label": "Legacy auth",
-            "description": "Use client certificate instead of GCP auth provider",
-            "type": "BOOLEAN",
-            "defaultValue" : false
-        },
-        {
-            "name": "baseImage",
-            "label": "Base image",
-            "description": "Base DSS image pushed on a repository accessible to GKE (if overriden)",
-            "type": "STRING",
-            "mandatory" : false
-        },
-        {
-            "name": "repositoryURL",
-            "label": "Repository URL",
-            "description": "URL to the repository, typically gcr.io/project_id (if overriden)",
-            "type": "STRING",
-            "mandatory" : false
-        },
-        {
-            "name": "kubeConfigPath",
-            "label": "Kubectl config path",
-            "description": "If not the $HOME/.kube/config default value",
-            "type": "STRING",
-            "mandatory" : false
         },
         {
             "name": "userName",
@@ -55,6 +27,13 @@
             "description": "If not the same as the gcloud user",
             "type": "STRING",
             "mandatory" : false
+        },
+        {
+            "name": "legacyAuth",
+            "label": "Legacy auth",
+            "description": "Use client certificate instead of GCP auth provider",
+            "type": "BOOLEAN",
+            "defaultValue" : false
         }
     ]
 }

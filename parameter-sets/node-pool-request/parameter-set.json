@@ -1,8 +1,8 @@
 {
     "meta" : {
         "label" : "Node pool",
-        "description" : "Configuration for a node pool",
-        "icon" : "icon-magic"
+        "description" : "Configuration for a GKE node pool",
+        "icon" : "icon-tasks"
     },
     
     "overridable" : false,
@@ -12,16 +12,24 @@
     ],
 
     "params": [
+       {
+            "name": "machineType",
+            "label": "Machine type",
+            "description": "GCE machine type for the nodes. See GCP documentation for available machine types.",
+            "type": "STRING",
+            "defaultValue":  "n1-highmem-8",
+            "mandatory" : false
+        },
         {
             "name": "numNodes",
-            "label": "Number of nodes",
+            "label": "Default number of nodes",
             "type": "INT",
             "mandatory" : true,
             "defaultValue" : 3
         },
         {
             "name": "numNodesAutoscaling",
-            "label": "Enable node autoscaling",
+            "label": "Enable nodes autoscaling",
             "type": "BOOLEAN",
             "mandatory" : true,
             "defaultValue" : false
@@ -42,38 +50,42 @@
             "defaultValue" : 5,
             "visibilityCondition" : "model.numNodesAutoscaling"
         },
+
         {
-            "name": "oauthScopes",
-            "label": "OAuth scopes",
-            "description": "Additional oauth scopes for the nodes, comma-separated.",
-            "type": "STRING",
-            "mandatory" : false
+            "type":"SEPARATOR",
+            "label" :"Security"
         },
         {
             "name": "useGcrIo",
-            "label": "Use gcr.io",
-            "description": "Adds 'https://www.googleapis.com/auth/devstorage.read_only' in the oauth scopes",
+            "label": "Allow access to gcr.io",
+            "description": "Required to pull images from GCR. Adds 'https://www.googleapis.com/auth/devstorage.read_only' in the OAuth scopes",
             "type": "BOOLEAN",
+            "defaultValue" : true,
             "mandatory" : false
         },
         {
-            "name": "machineType",
-            "label": "Machine type",
-            "description": "Template type for the nodes",
+            "name": "oauthScopes",
+            "label": "OAuth scopes",
+            "description": "Additional OAuth scopes for the nodes, comma-separated. Not usually required.",
             "type": "STRING",
             "mandatory" : false
+        },
+
+        {
+            "type":"SEPARATOR",
+            "label" :"Advanced options"
         },
         {
             "name": "diskType",
             "label": "Disk type",
-            "description": "Disk type for the nodes",
+            "description": "Disk type for the nodes (pd-standard or pd-ssd). Leave empty for default (pd-standard)",
             "type": "STRING",
             "mandatory" : false
         },
         {
             "name": "diskSizeGb",
-            "label": "Disk size",
-            "description": "Disk size for the nodes (leave 0 for default)",
+            "label": "Disk size (GB)",
+            "description": "Disk size for the nodes in gigabytes. Leave 0 for default (currently: 100GB).",
             "type": "INT",
             "mandatory" : false
         }

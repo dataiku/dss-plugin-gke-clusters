@@ -12,8 +12,6 @@ def make_overrides(config, kube_config, kube_config_path):
                             'executionConfigsGenericOverrides': {
                                 'kubeCtlContext': kube_config["current-context"], # has to exist, it's a config file we just built
                                 'kubeConfigPath': kube_config_path, # the config is not merged into the main config file, so we need to pass the config file pth
-                                'baseImage': _default_if_property_blank(config, "baseImage", None),
-                                'repositoryURL': _default_if_property_blank(config, "repositoryURL", None)
                             }
                         }
     spark_settings = {

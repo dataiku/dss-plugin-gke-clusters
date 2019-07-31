@@ -24,7 +24,7 @@ class MyCluster(Cluster):
         cluster_builder = clusters.new_cluster_builder()
         
         cluster_builder.with_name(self.cluster_name)
-        cluster_builder.with_version(self.config.get("clusterVersion", "1.11.10-gke.4"))
+        cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
         cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
         cluster_builder.with_network(self.config.get("network", "").strip(), self.config.get("subNetwork", "").strip())
         cluster_builder.with_legacy_auth(self.config.get("legacyAuth", False))
