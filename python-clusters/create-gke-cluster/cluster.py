@@ -6,6 +6,7 @@ from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
 from dku_kube.kubeconfig import merge_or_write_config
 from dku_kube.role import create_admin_binding
+from dku_kube.nvidia_utils import create_installer_daemonset
 from dku_utils.cluster import make_overrides, get_cluster_from_connection_info
 from dku_utils.access import _has_not_blank_property
 
@@ -38,6 +39,8 @@ class MyCluster(Cluster):
             node_pool_builder.with_disk_type(node_pool.get('diskType', None))
             node_pool_builder.with_disk_size_gb(node_pool.get('diskSizeGb', None))
             node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
+            node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
+
             
             node_pool_builder.build()
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
@@ -63,6 +66,9 @@ class MyCluster(Cluster):
         
         # add the admin role so that we can do the managed kubernetes stuff for spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)
+        
+        # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
+        create_installer_daemonset(self.config.get("userName", None), kube_config_path) 
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
         overrides = make_overrides(self.config, kube_config, kube_config_path)
