@@ -68,7 +68,7 @@ class MyCluster(Cluster):
         create_admin_binding(self.config.get("userName", None), kube_config_path)
         
         # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
-        create_installer_daemonset(self.config.get("userName", None), kube_config_path) 
+        create_installer_daemonset(kube_config_path=kube_config_path) 
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
         overrides = make_overrides(self.config, kube_config, kube_config_path)
