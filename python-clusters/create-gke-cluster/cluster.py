@@ -37,6 +37,7 @@ class MyCluster(Cluster):
             node_pool_builder.with_machine_type(node_pool.get('machineType', None))
             node_pool_builder.with_disk_type(node_pool.get('diskType', None))
             node_pool_builder.with_disk_size_gb(node_pool.get('diskSizeGb', None))
+            node_pool_builder.with_service_account(node_pool.get('serviceAccount', None))
             node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
             
             node_pool_builder.build()

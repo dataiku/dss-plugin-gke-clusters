@@ -77,6 +77,13 @@
             "label" :"Advanced options"
         },
         {
+            "name": "serviceAccount",
+            "label": "Service account",
+            "description": "Run the cluster nodes as this service account. If left empty, the default account of the project is used.",
+            "type": "STRING",
+            "mandatory" : false
+        },
+        {
             "name": "diskType",
             "label": "Disk type",
             "description": "Disk type for the nodes (pd-standard or pd-ssd). Leave empty for default (pd-standard)",
