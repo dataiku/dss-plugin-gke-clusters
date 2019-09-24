@@ -6,7 +6,7 @@
         "icon" : "icon-link"
     },
     
-    "defaultDefinableAtProjectLevel" : false,
+    "defaultDefinableAtProjectLevel" : true,
     "defaultDefinableInline" : true,
 
     "pluginParams": [
