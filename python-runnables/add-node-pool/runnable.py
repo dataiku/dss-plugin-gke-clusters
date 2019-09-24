@@ -49,7 +49,7 @@ class MyRunnable(Runnable):
         node_pool_builder.with_disk_type(node_pool_config.get('diskType', None))
         node_pool_builder.with_disk_size_gb(node_pool_config.get('diskSizeGb', None))
         node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
-
+        node_pool_builder.with_service_account(node_pool_config.get('serviceAccount', None))
         
         create_op = node_pool_builder.build()
         logging.info("Waiting for cluster node pool creation")

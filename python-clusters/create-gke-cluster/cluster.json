@@ -7,6 +7,9 @@
     
     "architecture" : "KUBERNETES",
     
+    "autoClusterNamePrefix" : "gke-cluster-",
+    "clusterNamePreparationLowercasing" : true,
+    
     "params": [
         {
             "name": "connectionInfo",

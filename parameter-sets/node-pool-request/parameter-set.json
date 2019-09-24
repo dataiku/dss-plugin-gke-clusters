@@ -6,8 +6,8 @@
         "icon" : "icon-tasks"
     },
     
-    "overridable" : false,
-    "inlinable" : true,
+    "defaultDefinableAtProjectLevel" : true,
+    "defaultDefinableInline" : true,
     
     "pluginParams": [
     ],
@@ -98,6 +98,13 @@
         {
             "type":"SEPARATOR",
             "label" :"Advanced options"
+        },
+        {
+            "name": "serviceAccount",
+            "label": "Service account",
+            "description": "Run the cluster nodes as this service account. If left empty, the default account of the project is used.",
+            "type": "STRING",
+            "mandatory" : false
         },
         {
             "name": "diskType",

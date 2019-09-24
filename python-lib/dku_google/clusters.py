@@ -24,6 +24,7 @@ class NodePoolBuilder(object):
         self.enable_gpu = False
         self.gpu_type = None
         self.gpu_count = None
+        self.service_account = None
  
     def with_name(self, name):
         self.name = name
@@ -70,6 +71,10 @@ class NodePoolBuilder(object):
         self.disk_size_gb = disk_size_gb
         return self
     
+    def with_service_account(self, service_account):
+        self.service_account = service_account
+        return self
+    
     def with_settings_valve(self, settings_valve):
         self.settings_valve = _default_if_blank(settings_valve, None)
         return self
@@ -96,7 +101,10 @@ class NodePoolBuilder(object):
         if self.disk_size_gb is not None and self.disk_size_gb > 0:
             node_pool['config']['diskSizeGb'] = self.disk_size_gb
         node_pool['config']['oauthScopes'] = self.oauth_scopes
-
+        
+        if not _is_none_or_blank(self.service_account):
+            node_pool['config']['serviceAccount'] = self.service_account
+            
         node_pool["management"] = {
             "autoUpgrade": True,
             "autoRepair": True
