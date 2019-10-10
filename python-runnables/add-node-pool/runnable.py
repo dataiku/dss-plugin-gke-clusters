@@ -1,8 +1,10 @@
-from dataiku.runnables import Runnable
 import dataiku
 import json, logging
 from dku_google.clusters import Clusters
 from dku_utils.cluster import get_cluster_from_dss_cluster
+from dku_kube.nvidia_utils import create_installer_daemonset
+from dataiku.runnables import Runnable
+
 
 class MyRunnable(Runnable):
     def __init__(self, project_key, config, plugin_config):
@@ -46,11 +48,17 @@ class MyRunnable(Runnable):
         node_pool_builder.with_machine_type(node_pool_config.get('machineType', None))
         node_pool_builder.with_disk_type(node_pool_config.get('diskType', None))
         node_pool_builder.with_disk_size_gb(node_pool_config.get('diskSizeGb', None))
+        node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
         node_pool_builder.with_service_account(node_pool_config.get('serviceAccount', None))
         
         create_op = node_pool_builder.build()
         logging.info("Waiting for cluster node pool creation")
         create_op.wait_done()
         logging.info("Cluster node pool created")
+
+        # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
+        kube_config_path = cluster.get_kube_config()
+        create_installer_daemonset(kube_config_path=kube_config_path)
+
 
         return '<pre class="debug">%s</pre>' % json.dumps(node_pool.get_info(), indent=2)

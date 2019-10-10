@@ -22,6 +22,29 @@
             "mandatory" : false
         },
         {
+            "name": "withGpu",
+            "label": "With GPU",
+            "description": "Attach GPUs to nodes",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true
+        },
+        {
+            "name": "gpuType",
+            "label": "GPU type",
+            "type": "STRING",
+            "defaultValue": "nvidia-tesla-k80",
+            "visibilityCondition": "model.withGpu"
+        },
+        {
+            "name": "gpuCount",
+            "label": "Nb. of GPU/node",
+            "type": "INT",
+            "mandatory": false,
+            "defaultValue": 1,
+            "visibilityCondition": "model.withGpu"
+        },
+        {
             "name": "numNodes",
             "label": "Default number of nodes",
             "type": "INT",

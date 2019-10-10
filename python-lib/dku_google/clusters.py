@@ -21,6 +21,9 @@ class NodePoolBuilder(object):
         self.min_node_count = None
         self.max_node_count = None
         self.enable_autoscaling = False
+        self.enable_gpu = False
+        self.gpu_type = None
+        self.gpu_count = None
         self.service_account = None
  
     def with_name(self, name):
@@ -76,6 +79,12 @@ class NodePoolBuilder(object):
         self.settings_valve = _default_if_blank(settings_valve, None)
         return self
 
+    def with_gpu(self, enable_gpu, gpu_type, gpu_count):
+        self.enable_gpu = enable_gpu
+        self.gpu_type = gpu_type
+        self.gpu_count = gpu_count
+        return self
+
     def build(self):
         node_pool = {'config':{}}
         node_pool['name'] = self.name if self.name is not None else 'node-pool'
@@ -84,6 +93,11 @@ class NodePoolBuilder(object):
             node_pool['config']['machineType'] = self.machine_type
         if self.disk_type is not None:
             node_pool['config']['diskType'] = self.disk_type
+        # Add optional GPU accelerator:
+        if self.enable_gpu:
+            logging.info("GPU option enabled.")
+            node_pool['config']['accelerators'] = [{'acceleratorCount': self.gpu_count,
+                                                    'acceleratorType': self.gpu_type}]
         if self.disk_size_gb is not None and self.disk_size_gb > 0:
             node_pool['config']['diskSizeGb'] = self.disk_size_gb
         node_pool['config']['oauthScopes'] = self.oauth_scopes
@@ -167,7 +181,7 @@ class ClusterBuilder(object):
     def with_settings_valve(self, settings_valve):
         self.settings_valve = _default_if_blank(settings_valve, None)
         return self
-    
+
     def _auto_name(self):
         return 'dku-cluster-' + ''.join([random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for i in range(0, 8)])
     
@@ -222,7 +236,7 @@ class ClusterBuilder(object):
             create_cluster_request_body["cluster"]["addonsConfig"]["httpLoadBalancing"] = {"disabled":False}
         else:
             create_cluster_request_body["cluster"]["addonsConfig"]["httpLoadBalancing"] = {"disabled":True}
-                
+                        
         for node_pool in self.node_pools:
             create_cluster_request_body['cluster']['nodePools'].append(node_pool)
             
