@@ -1,6 +1,6 @@
 {
     "id": "gke-clusters",
-    "version": "0.0.2",
+    "version": "1.0.1",
     "meta": {
         "label": "GKE clusters",
         "description": "Interact with Google Kubernetes Engine clusters",
