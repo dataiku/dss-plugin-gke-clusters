@@ -26,16 +26,47 @@
             "defaultValue": "latest"
         },
         {
+            "name": "s-network",
+            "type": "SEPARATOR",
+            "label": "Networking",
+            "description": "<ul><li>For VPC-native clusters, leave IP ranges empty to let GKE automatically assign them.</li></ul>"
+        },
+        {
             "name": "network",
             "label": "Network",
+            "description": "Falls back to 'default' if empty",
             "type": "STRING",
             "mandatory" : false
         },
         {
             "name": "subNetwork",
-            "label": "Sub-network",
+            "label": "Subnetwork",
+            "description": "Falls back to 'default' if empty",
             "type": "STRING",
             "mandatory" : false
+        },
+        {
+            "name": "isVpcNative",
+            "label": "Make cluster VPC-native",
+            "description": "Allocate pod/service IPs directly from GCP network (RECOMMENDED)",
+            "type": "BOOLEAN",
+            "defaultValue": true
+        },
+        {
+            "name": "podIpRange",
+            "label": "Pod IP range",
+            "description": "Use CIDR block/mask notation, e.g. 10.0.0.0/24 or /24",
+            "type": "STRING",
+            "mandatory": false,
+            "visibilityCondition": "model.isVpcNative"
+        },
+        {
+            "name": "svcIpRange",
+            "label": "Service IP range",
+            "description": "Use CIDR block/mask notation, e.g. 10.0.0.0/24 or /24. MUST be different from pod IP range.",
+            "type": "STRING",
+            "mandatory": false,
+            "visibilityCondition": "model.isVpcNative"
         },
         {
             "name": "s-nodes",

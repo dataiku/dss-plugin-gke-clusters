@@ -29,14 +29,14 @@
         },
         {
             "name": "nodePoolId",
-            "label": "Node pool",
+            "label": "Node pool ID",
             "description": "Id of node pool to create, if not default",
             "type": "STRING",
             "mandatory": false
         },
         {
             "name": "nodePoolConfig",
-            "label": "Node pool",
+            "label": "Node pool config",
             "type": "PRESET",
             "parameterSetId" : "node-pool-request",
             "mandatory" : true
