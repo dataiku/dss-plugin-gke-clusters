@@ -1,6 +1,7 @@
 import os, sys, json, subprocess, time, logging, yaml
-
 from dataiku.cluster import Cluster
+
+
 
 from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
@@ -28,6 +29,9 @@ class MyCluster(Cluster):
         cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
         cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
         cluster_builder.with_network(self.config.get("network", "").strip(), self.config.get("subNetwork", "").strip())
+        cluster_builder.with_vpc_native_settings(self.config.get("isVpcNative", None),
+                                                 self.config.get("podIpRange", ""),
+                                                 self.config.get("svcIpRange", ""))
         cluster_builder.with_legacy_auth(self.config.get("legacyAuth", False))
         cluster_builder.with_http_load_balancing(self.config.get("httpLoadBalancing", False))
         for node_pool in self.config.get('nodePools', []):
@@ -41,8 +45,6 @@ class MyCluster(Cluster):
             node_pool_builder.with_service_account(node_pool.get('serviceAccount', None))
             node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
             node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
-
-            
             node_pool_builder.build()
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
         
@@ -76,12 +78,10 @@ class MyCluster(Cluster):
         return [overrides, {'kube_config_path':kube_config_path, 'cluster':cluster_info}]
 
     def stop(self, data):
-        clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])
-        
+        clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])  
         cluster = clusters.get_cluster(self.cluster_name)
-            
         stop_op = cluster.stop()    
         logging.info("Waiting for cluster stop")
         stop_op.wait_done()
-        logging.info("Cluster stoped")
+        logging.info("Cluster stopped")
 

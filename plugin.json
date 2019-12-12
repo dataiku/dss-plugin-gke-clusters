@@ -1,13 +1,14 @@
 {
-    "id": "gke",
-    "version": "0.0.1",
+    "id": "gke-clusters",
+    "version": "1.0.1",
     "meta": {
         "label": "GKE clusters",
         "description": "Interact with Google Kubernetes Engine clusters",
         "author": "Dataiku",
-        "icon": "icon-puzzle-piece",
+        "icon": "icon-cloud",
         "licenseInfo": "Apache Software License",
-        "url": "https://www.dataiku.com/dss/plugins/info/gke.html",
-        "tags": ["Cloud", "Google"]
+        "url": "https://github.com/dataiku/dss-plugin-gke-clusters",
+        "tags": ["Cloud", "Google"],
+        "supportLevel": "TIER2_SUPPORT"
     }
 }

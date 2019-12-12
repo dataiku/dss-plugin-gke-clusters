@@ -1,4 +1,5 @@
 from googleapiclient import discovery
+from six import text_type
 from googleapiclient.errors import HttpError
 from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_project_region_and_zone
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
@@ -50,7 +51,7 @@ class NodePoolBuilder(object):
         return self
     
     def with_oauth_scopes(self, oauth_scopes):
-        if isinstance(oauth_scopes, str) or isinstance(oauth_scopes, unicode):
+        if isinstance(oauth_scopes, text_type):
             return self.with_oauth_scopes(oauth_scopes.split(','))
         if oauth_scopes is not None:
             for oauth_scope in oauth_scopes:
@@ -127,7 +128,8 @@ class NodePoolBuilder(object):
             return self.cluster_builder.create(node_pool)
         else:
             raise Exception("Unreachable")
-        
+
+
 class ClusterBuilder(object):
     def __init__(self, clusters):
         self.clusters = clusters
@@ -137,6 +139,9 @@ class ClusterBuilder(object):
         self.network = None
         self.subnetwork = None
         self.labels = {}
+        self.is_vpc_native = None
+        self.pod_ip_range = None
+        self.svc_ip_range = None
         self.legacy_auth = False
         self.http_load_balancing = None
         self.node_pools = []
@@ -169,6 +174,13 @@ class ClusterBuilder(object):
     def with_label(self, **kwargs):
         self.labels.update(kwargs)
         return self
+
+    def with_vpc_native_settings(self, is_vpc_native, pod_ip_range, svc_ip_range):
+        if is_vpc_native:
+            self.is_vpc_native = is_vpc_native
+            self.pod_ip_range = pod_ip_range
+            self.svc_ip_range = svc_ip_range
+        return self
     
     def with_legacy_auth(self, legacy_auth):
         self.legacy_auth = legacy_auth
@@ -192,6 +204,8 @@ class ClusterBuilder(object):
         cluster_network = self.network
         cluster_subnetwork = self.subnetwork
         cluster_labels = self.labels
+        cluster_pod_ip_range = self.pod_ip_range
+        cluster_svc_ip_range = self.svc_ip_range
         
         if _is_none_or_blank(cluster_name):
             cluster_name = self._auto_name()
@@ -210,7 +224,15 @@ class ClusterBuilder(object):
             },
             "parent" : self.clusters.get_location()
         }
-        
+        if self.is_vpc_native:
+            ip_allocation_policy = {
+                "createSubnetwork": False,
+                "useIpAliases": True,
+                "servicesIpv4CidrBlock": cluster_pod_ip_range,
+                "clusterIpv4CidrBlock": cluster_svc_ip_range,
+            }
+            create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
+
         if self.legacy_auth:
             create_cluster_request_body["cluster"]["legacyAbac"] = {"enabled":True}
             
@@ -236,7 +258,7 @@ class ClusterBuilder(object):
             create_cluster_request_body["cluster"]["addonsConfig"]["httpLoadBalancing"] = {"disabled":False}
         else:
             create_cluster_request_body["cluster"]["addonsConfig"]["httpLoadBalancing"] = {"disabled":True}
-                        
+
         for node_pool in self.node_pools:
             create_cluster_request_body['cluster']['nodePools'].append(node_pool)
             
