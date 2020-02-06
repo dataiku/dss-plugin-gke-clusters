@@ -2,6 +2,7 @@ from googleapiclient import discovery
 from six import text_type
 from googleapiclient.errors import HttpError
 from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_project_region_and_zone
+from dku_google.gcloud import get_gce_network
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
 
 import os, sys, json, re
@@ -155,9 +156,17 @@ class ClusterBuilder(object):
         self.version = version
         return self
     
-    def with_network(self, network, subnetwork):
-        self.network = _default_if_blank(network, None)
-        self.subnetwork = _default_if_blank(subnetwork, None)
+    def with_network(self, is_same_network_as_dss, network, subnetwork):
+        self.is_same_network_as_dss = is_same_network_as_dss
+        if self.is_same_network_as_dss:
+            logging.info("Cluster network/subnetwork is the SAME AS DSS HOST")
+            self.network, self.subnetwork = get_gce_network()
+        else:
+            logging.info("Cluster network/subnetwork is set EXPLICITLY")
+            self.network = _default_if_blank(network, None)
+            self.subnetwork = _default_if_blank(subnetwork, None)
+        logging.info("Cluster network is {}".format(self.network))
+        logging.info("Cluster subnetwork is {}".format(self.subnetwork))
         return self
     
     def get_node_pool_builder(self):

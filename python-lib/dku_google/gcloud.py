@@ -1,4 +1,5 @@
 import os, sys, json, yaml, subprocess, logging
+import socket
 from dku_utils.access import _safe_get_value
 
 GCLOUD_INFO = None
@@ -35,4 +36,27 @@ def get_access_token_and_expiry(config={}):
     info = json.loads(info_str)
     token_key_chunks = config.get("token-key", "{.credential.access_token}")[2:-1].split('.')
     expiry_key_chunks = config.get("expiry-key", "{.credential.token_expiry}")[2:-1].split('.')
-    return _safe_get_value(info, token_key_chunks), _safe_get_value(info, expiry_key_chunks) 
+    return _safe_get_value(info, token_key_chunks), _safe_get_value(info, expiry_key_chunks)
+
+def get_gce_network():
+    """
+    Return the network and subnetwork of the GCE VM.
+    IMPORTANT: We assume that the VM only has 1 network interface!
+    """
+    
+    logging.info("Retrieving GCE VM network info through gcloud")
+    cmd = ["gcloud", "compute", "instances", "describe"]
+    gce_vm_name = socket.gethostname()
+    cmd.append(gce_vm_name)
+    project, region, zone = get_project_region_and_zone()
+    cmd += ["--project=", project, "--zone=", zone, "--format", "json"]
+    try:
+        gce_vm_info_str = subprocess.check_output(cmd)
+    except:
+        raise ValueError("gcloud CLI not found, check if Google Cloud SDK is properly installed and configured")
+    network_interfaces = _safe_get_value(gce_vm_info_str, ["networkInterfaces"], None)
+    network = network_interfaces[0]["network"]
+    subnetwork = network_interfaces[0]["subnetwork"]
+
+    return network, subnetwork
+
