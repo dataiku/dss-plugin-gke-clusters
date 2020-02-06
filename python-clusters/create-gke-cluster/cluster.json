@@ -32,18 +32,27 @@
             "description": "<ul><li>For VPC-native clusters, leave IP ranges empty to let GKE automatically assign them.</li></ul>"
         },
         {
+            "name": "isInheritedFromDSSHost",
+            "label": "Inherit DSS host settings",
+            "type": "BOOLEAN",
+            "description": "Create cluster in same VPC/subnetwork as DSS host",
+            "default": true
+        },
+        {
             "name": "network",
             "label": "Network",
             "description": "Falls back to 'default' if empty",
             "type": "STRING",
-            "mandatory" : false
+            "mandatory" : false,
+            "visibilityCondition": "!model.isInheritedFromDSSHost"
         },
         {
             "name": "subNetwork",
             "label": "Subnetwork",
             "description": "Falls back to 'default' if empty",
             "type": "STRING",
-            "mandatory" : false
+            "mandatory" : false,
+            "visibilityCondition": "!model.isInheritedFromDSSHost"
         },
         {
             "name": "isVpcNative",
