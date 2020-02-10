@@ -2,7 +2,7 @@ from googleapiclient import discovery
 from six import text_type
 from googleapiclient.errors import HttpError
 from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_project_region_and_zone
-from dku_google.gcloud import get_gce_network
+from dku_google.gcloud import get_gce_network, get_gce_service_account
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
 
 import os, sys, json, re
@@ -74,8 +74,13 @@ class NodePoolBuilder(object):
         self.disk_size_gb = disk_size_gb
         return self
     
-    def with_service_account(self, service_account):
-        self.service_account = service_account
+    def with_service_account(self, service_account_type, custom_service_account_name):
+        if service_account_type == "fromDSSHost":
+            self.service_account = get_gce_service_account()
+        elif service_account_type == "custom":
+            self.service_account = custom_service_account_name
+        else:
+            self.service_account = ""
         return self
     
     def with_settings_valve(self, settings_valve):

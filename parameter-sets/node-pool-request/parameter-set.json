@@ -107,10 +107,32 @@
         },
         {
             "name": "serviceAccount",
-            "label": "Service account",
-            "description": "Run the cluster nodes as this service account. If left empty, the default account of the project is used.",
+            "label": "Service account type",
+            "description": "Run the cluster nodes as this GCP service account.",
+            "type": "SELECT",
+            "mandatory": true,
+            "selectChoices": [
+                {
+                    "value": "default",
+                    "label": "Default from GCP project"
+                },
+                {
+                    "value": "fromDSSHost",
+                    "label": "Same as DSS host"
+                },
+                {
+                    "value": "custom",
+                    "label": "Custom"
+                }
+            ],
+            "defaultValue": "default"
+        },
+        {
+            "name": "customNodepoolServiceAccount",
+            "label": "Service account name",
             "type": "STRING",
-            "mandatory" : false
+            "mandatory": false,
+            "visibilityCondition": "model.serviceAccount == 'custom'"
         },
         {
             "name": "diskType",

@@ -116,3 +116,25 @@ def get_gce_labels():
 
     labels = _safe_get_value(_get_gce_instance_info(), "labels")
     return labels
+
+
+def get_gce_service_account():
+    """
+    Retrieve the active service account on the DSS host
+    """
+
+    logging.info("Retrieving gcloud auth info")
+    cmd_base = ["gcloud", "auth", "list"]
+    cmd_output_format = ["--format", "json"]
+    cmd_base += cmd_output_format
+
+    try:
+        gce_auth_info_str = subprocess.check_output(cmd_base)
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+    gce_auth_info = json.loads(gce_auth_info_str)
+    for identity in gce_auth_info:
+        if identity["status"] == "ACTIVE":
+            gce_active_sa = identity["account"]
+    logging.info("Active service account on DSS host is {}".format(gce_active_sa))
+    return gce_active_sa
