@@ -27,6 +27,7 @@ class NodePoolBuilder(object):
         self.gpu_type = None
         self.gpu_count = None
         self.service_account = None
+        self.nodepool_labels = {}
  
     def with_name(self, name):
         self.name = name
@@ -87,6 +88,12 @@ class NodePoolBuilder(object):
         self.gpu_count = gpu_count
         return self
 
+    def with_nodepool_labels(self, nodepool_labels = {}):
+        self.nodepool_labels.update(nodepool_labels)
+        if self.nodepool_labels:
+            logging.info("Adding labels {} to node pool {}".format(self.nodepool_labels, self.name))
+        return self
+
     def build(self):
         node_pool = {'config':{}}
         node_pool['name'] = self.name if self.name is not None else 'node-pool'
@@ -111,13 +118,13 @@ class NodePoolBuilder(object):
             "autoUpgrade": True,
             "autoRepair": True
         }
-        
         if self.enable_autoscaling:
             node_pool['autoscaling'] = {
                                             "enabled":True,
                                             "minNodeCount":self.min_node_count if self.min_node_count is not None else node_pool['initialNodeCount'],
                                             "maxNodeCount":self.max_node_count if self.max_node_count is not None else node_pool['initialNodeCount']
                                         }
+        node_pool["config"]["labels"] = self.nodepool_labels
             
         if not _is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
@@ -180,8 +187,10 @@ class ClusterBuilder(object):
         self.node_count = node_count
         return self
     
-    def with_label(self, **kwargs):
-        self.labels.update(kwargs)
+    def with_labels(self, labels={}):
+        self.labels.update(labels)
+        if self.labels:
+            logging.info("Adding labels {}".format(str(self.labels)))
         return self
 
     def with_vpc_native_settings(self, is_vpc_native, pod_ip_range, svc_ip_range):

@@ -95,6 +95,12 @@
             "label": "Advanced options"
         },
         {
+            "name": "clusterLabels",
+            "label": "Labels",
+            "type": "MAP",
+            "description": "Annotate all the cluster's related GCP resources"
+        },
+        {
             "name": "httpLoadBalancing",
             "label": "HTTP load balancing",
             "description": "Enable interaction with Google Cloud's load balancing abilities",
