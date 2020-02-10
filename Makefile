@@ -1,4 +1,4 @@
-PLUGIN_VERSION=1.1.0.dev
+PLUGIN_VERSION=1.1.0
 PLUGIN_ID=gke-clusters
 
 plugin:
