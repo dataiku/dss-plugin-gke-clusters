@@ -59,10 +59,6 @@ def get_project_region_and_zone():
     region = _run_cmd(cmd+["compute/region"])
     zone = _run_cmd(cmd+["compute/zone"])
 
-    for prop in [project, region, zone]:
-        if len(prop) == 0:
-            raise ValueError("{} is UNSET, please configure gcloud accordingly".format(prop))
-
     return project, region, zone
 
 
