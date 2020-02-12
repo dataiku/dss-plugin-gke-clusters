@@ -80,10 +80,7 @@ def _get_gce_instance_info():
     cmd_output_format = ["--format", "json"]
     cmd_base += cmd_output_format
 
-    try:
-        gce_instance_info_str = subprocess.check_output(cmd_base)
-    except subprocess.CalledProcessError as e:
-        print(e.output)
+    gce_instance_info_str = _run_cmd(cmd_base)
     gce_instance_info = json.loads(gce_instance_info_str)
 
     return gce_instance_info
