@@ -100,12 +100,6 @@
             "label" :"Advanced options"
         },
         {
-            "name": "nodepoolLabels",
-            "type": "MAP",
-            "label": "Labels",
-            "description": "Annotations specific to this node pool"
-        },
-        {
             "name": "serviceAccount",
             "label": "Service account type",
             "description": "Run the cluster nodes as this GCP service account.",
@@ -147,6 +141,12 @@
             "description": "Disk size for the nodes in gigabytes. Leave 0 for default (currently: 100GB).",
             "type": "INT",
             "mandatory" : false
+        },
+        {
+            "name": "nodepoolLabels",
+            "type": "MAP",
+            "label": "K8S labels",
+            "description": "Custom K8S metadata to attach to each node"
         }
     ]
 }
