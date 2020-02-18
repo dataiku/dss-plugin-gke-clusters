@@ -59,11 +59,15 @@ def get_project_region_and_zone():
     region = _run_cmd(cmd+["compute/region"])
     zone = _run_cmd(cmd+["compute/zone"])
 
+    logging.info("The following config params were found for gcloud: PROJECT={}, REGION={}, ZONE={}".format(project, region, zone))
+
     return project, region, zone
 
 
 def _get_gce_instance_info():
     """
+    Run 'gcloud compute instances describe <the-host-vm>'
+    Requires the compute.zones.list IAM permission.
     """
     
     gce_instance_info = {}
@@ -79,7 +83,8 @@ def _get_gce_instance_info():
 
     cmd_output_format = ["--format", "json"]
     cmd_base += cmd_output_format
-
+    
+    logging.info("Running CMD {}".format(cmd_base))
     gce_instance_info_str = _run_cmd(cmd_base)
     gce_instance_info = json.loads(gce_instance_info_str)
 

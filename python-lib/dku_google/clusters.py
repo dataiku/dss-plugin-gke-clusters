@@ -75,6 +75,11 @@ class NodePoolBuilder(object):
         return self
     
     def with_service_account(self, service_account_type, custom_service_account_name):
+        """
+        Change default service account on cluster nodes.
+        Requires the iam.serviceAccountUser IAM permission.
+        """
+
         if service_account_type == "fromDSSHost":
             self.service_account = get_gce_service_account()
         elif service_account_type == "custom":

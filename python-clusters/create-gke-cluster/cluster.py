@@ -28,7 +28,7 @@ class MyCluster(Cluster):
         cluster_builder.with_name(self.cluster_name)
         cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
         cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
-        cluster_builder.with_network(self.config.get("isInheritedFromDSSHost", True),
+        cluster_builder.with_network(self.config.get("inheritFromDSSHost", True),
                                      self.config.get("network", "").strip(),
                                      self.config.get("subNetwork", "").strip())
         cluster_builder.with_vpc_native_settings(self.config.get("isVpcNative", None),
