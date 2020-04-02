@@ -2,11 +2,11 @@
     "meta" : {
         "label" : "Attach GKE cluster",
         "description" : "Attach to a running GKE cluster",
-        "icon" : "icon-puzzle-piece"
+        "icon" : "icon-gcp-kubernetes-engine icon-cloud"
     },
-    
+
     "architecture" : "KUBERNETES",
-    
+
     "params": [
         {
             "name": "connectionInfo",
