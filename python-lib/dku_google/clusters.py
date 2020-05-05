@@ -83,9 +83,10 @@ class NodePoolBuilder(object):
         if service_account_type == "fromDSSHost":
             self.service_account = get_gce_service_account()
         elif service_account_type == "custom":
-            self.service_account = custom_service_account_name
+            if len(custom_service_account_name) == 0:
+                self.service_account = ""
         else:
-            self.service_account = ""
+            self.service_account = custom_service_account_name
         return self
     
     def with_settings_valve(self, settings_valve):

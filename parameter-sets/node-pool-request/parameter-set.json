@@ -100,16 +100,12 @@
             "label" :"Advanced options"
         },
         {
-            "name": "serviceAccount",
+            "name": "serviceAccountType",
             "label": "Service account type",
             "description": "Run the cluster nodes as this GCP service account.",
             "type": "SELECT",
             "mandatory": true,
             "selectChoices": [
-                {
-                    "value": "default",
-                    "label": "Default from GCP project"
-                },
                 {
                     "value": "fromDSSHost",
                     "label": "Same as DSS host"
@@ -119,11 +115,12 @@
                     "label": "Custom"
                 }
             ],
-            "defaultValue": "default"
+            "defaultValue": "custom"
         },
         {
-            "name": "customNodepoolServiceAccount",
+            "name": "serviceAccount",
             "label": "Service account name",
+            "description": "Leave blank to use the Compute Engine default service account",
             "type": "STRING",
             "mandatory": false,
             "visibilityCondition": "model.serviceAccount == 'custom'"
