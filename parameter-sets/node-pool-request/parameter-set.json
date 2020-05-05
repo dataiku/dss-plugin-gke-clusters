@@ -141,7 +141,7 @@
         },
         {
             "name": "nodepoolLabels",
-            "type": "MAP",
+            "type": "KEY_VALUE_LIST",
             "label": "K8S labels",
             "description": "Custom K8S metadata to attach to each node"
         }

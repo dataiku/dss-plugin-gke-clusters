@@ -97,7 +97,7 @@
         {
             "name": "clusterLabels",
             "label": "Labels",
-            "type": "MAP",
+            "type": "KEY_VALUE_LIST",
             "description": "Annotate all the cluster's related GCP resources"
         },
         {
