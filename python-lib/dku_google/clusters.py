@@ -1,8 +1,8 @@
 from googleapiclient import discovery
 from six import text_type
 from googleapiclient.errors import HttpError
-from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_project_region_and_zone
-from dku_google.gcloud import get_gce_network, get_gce_service_account
+from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_instance_info
+from dku_google.gcloud import get_instance_network, get_instance_service_account
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
 
 import os, sys, json, re
@@ -81,7 +81,7 @@ class NodePoolBuilder(object):
         """
 
         if service_account_type == "fromDSSHost":
-            self.service_account = get_gce_service_account()
+            self.service_account = get_instance_service_account()
         elif service_account_type == "custom":
             if len(custom_service_account_name) == 0:
                 self.service_account = ""
@@ -178,7 +178,7 @@ class ClusterBuilder(object):
         self.is_same_network_as_dss = is_same_network_as_dss
         if self.is_same_network_as_dss:
             logging.info("Cluster network/subnetwork is the SAME AS DSS HOST")
-            self.network, self.subnetwork = get_gce_network()
+            self.network, self.subnetwork = get_instance_network()
         else:
             logging.info("Cluster network/subnetwork is set EXPLICITLY")
             self.network = _default_if_blank(network, None)
@@ -492,15 +492,16 @@ class Cluster(object):
 class Clusters(object):
     def __init__(self, project_id, zone, credentials=None):
         logging.info("Connect using project_id=%s zone=%s credentials=%s" % (project_id, zone, credentials))
+        instance_info = get_instance_info()
         if _is_none_or_blank(project_id):
-            default_project, default_region, default_zone = get_project_region_and_zone()
+            default_project = instance_info["project"]
+            logging.info("No project specified, using {} as default".format(default_project))
             self.project_id = default_project
         else:
             self.project_id = project_id
         if _is_none_or_blank(zone):
-            print("ZONE IS BLANK")
-            default_project, default_region, default_zone = get_project_region_and_zone()
-            print("PROJECT {}/REGION {}/ZONE {}".format(default_project, default_region, default_zone))
+            default_zone = instance_info["zone"]
+            logging.info("No zone specified, using {} as default".format(default_zone))
             self.zone = default_zone
         else:
             self.zone = zone

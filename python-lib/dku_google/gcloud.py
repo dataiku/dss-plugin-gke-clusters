@@ -1,8 +1,12 @@
 import os, sys, json, yaml, subprocess, logging
 import socket
+import requests
+
 from dku_utils.access import _safe_get_value
 
 GCLOUD_INFO = None
+METADATA_SERVER_BASE_URL="http://metadata/computeMetadata/v1/"
+
 def _get_gcloud_info():
     global GCLOUD_INFO
     if GCLOUD_INFO is None:
@@ -41,6 +45,7 @@ def _run_cmd(cmd=None):
     Run command via subprocess. Clean retrieval of error message if fails. Trims any trailing space.
     """
 
+    logging.info("Running CMD {}".format(cmd))
     try:
         out = subprocess.check_output(cmd).rstrip()
     except subprocess.CalledProcessError as e:
@@ -48,91 +53,68 @@ def _run_cmd(cmd=None):
     return out
 
 
-def get_project_region_and_zone():
+def get_instance_info():
     """
-    Call the 'gcloud config get-value' command to retrieve parameters.
-    Requires that the gcloud CLI has been properly configured.
-    """
-
-    cmd = ["gcloud", "config", "get-value"]
-    project = _run_cmd(cmd+["core/project"])
-    region = _run_cmd(cmd+["compute/region"])
-    zone = _run_cmd(cmd+["compute/zone"])
-
-    logging.info("The following config params were found for gcloud: PROJECT={}, REGION={}, ZONE={}".format(project, region, zone))
-
-    return project, region, zone
-
-
-def _get_gce_instance_info():
-    """
-    Run 'gcloud compute instances describe <the-host-vm>'
-    Requires the compute.zones.list IAM permission.
-    """
-    
-    gce_instance_info = {}
-
-    project, region, zone = get_project_region_and_zone()
-    logging.info("Retrieving GCE VM info")
-    cmd_base = ["gcloud", "compute", "instances", "describe"]
-    gce_vm_name = socket.gethostname()
-    cmd_base += [gce_vm_name]
-
-    cmd_opts = ["--project", project, "--zone", zone]
-    cmd_base += cmd_opts
-
-    cmd_output_format = ["--format", "json"]
-    cmd_base += cmd_output_format
-    
-    logging.info("Running CMD {}".format(cmd_base))
-    gce_instance_info_str = _run_cmd(cmd_base)
-    gce_instance_info = json.loads(gce_instance_info_str)
-
-    return gce_instance_info
-
-
-def get_gce_network():
-    """
-    Retrieve the network & subnetwork from the DSS host.
+    Retrieve the instance name, project, region and zone by calling the local
+    metadata server.
     """
 
-    gce_instance_info = _get_gce_instance_info()
-    network_interfaces = gce_instance_info["networkInterfaces"]
+    metadata_flavor = {"Metadata-Flavor": "Google"}
+    instance_info = {}
+    # Project name
+    instance_info["project"] = requests.get("/".join([METADATA_SERVER_BASE_URL,
+                                                      "project",
+                                                      "project-id"]),
+                                            headers=metadata_flavor).text
+    zone_full = requests.get("/".join([METADATA_SERVER_BASE_URL,
+                                       "instance",
+                                       "zone"]),
+                        headers=metadata_flavor).text
+    zone = zone_full.split("/")[-1] 
+    instance_info["zone"] = zone
+    instance_info["region"] = zone.split("-")[:-1]
+    instance_info["vm_name"] = requests.get("/"/join([METADATA_SERVER_BASE_URL,
+                                                      "instance",
+                                                      "name"]),
+                                            headers=metadata_flavor).text
+    return instance_info
+
+
+def get_instance_network():
+    """
+    Retrieve the network and subnetwork of the DSS host.
+    """
+
+    instance_info = get_instance_info()
+    cmd = ["gcloud", "compute", "instances", "describe"]
+    cmd += [
+                    instance_info["name"],
+                    "--project",
+                    instance_info["project"],
+                    "--zone",
+                    instance_info["zone"],
+                    "--format=json"
+                ]   
+    instance_full_info = json.loads(_run_cmd(cmd))
+    network_interfaces = instance_info["networkInterfaces"]
     default_nic = network_interfaces[0]
     if len(network_interfaces) > 1:
-        logging.info("WARNING! Multiple network interfaces detected, will use {}".format(default_nic))
+        logging.info("WARNING! Multiple NICs detected, will use {}".format(default_nic))
     network = default_nic["network"]
     subnetwork = default_nic["subnetwork"]
-
     return network, subnetwork
 
 
-def get_gce_labels():
+def get_instance_service_account():
     """
-    Retrieve the labels from the DSS host.
-    """
-
-    labels = _safe_get_value(_get_gce_instance_info(), "labels")
-    return labels
-
-
-def get_gce_service_account():
-    """
-    Retrieve the active service account on the DSS host
+    Retrieve the active service account of the DSS host
     """
 
     logging.info("Retrieving gcloud auth info")
-    cmd_base = ["gcloud", "auth", "list"]
-    cmd_output_format = ["--format", "json"]
-    cmd_base += cmd_output_format
-
-    try:
-        gce_auth_info_str = subprocess.check_output(cmd_base)
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-    gce_auth_info = json.loads(gce_auth_info_str)
-    for identity in gce_auth_info:
+    cmd = ["gcloud", "auth", "list", "--format=json"]
+    instance_auth_info = json.loads(run_cmd(cmd))
+    for identity in instance_auth_info:
         if identity["status"] == "ACTIVE":
-            gce_active_sa = identity["account"]
-    logging.info("Active service account on DSS host is {}".format(gce_active_sa))
-    return gce_active_sa
+            instance_active_sa = identity["account"]
+    logging.info("Active service account on DSS host is {}".format(instance_active_sa))
+    return instance_active_sa
