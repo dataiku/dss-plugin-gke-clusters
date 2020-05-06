@@ -54,8 +54,8 @@ class MyRunnable(Runnable):
         node_pool_builder.with_gpu(node_pool_config.get('withGpu', False),
                                    node_pool_config.get('gpuType', None),
                                    node_pool_config.get('gpuCount', 1))
-        node_pool_builder.with_service_account(node_pool_config.get('serviceAccount', None),
-                                               node_pool_config.get('customNodePoolServiceAccount', None))
+        node_pool_builder.with_service_account(node_pool_config.get('serviceAccountType', None),
+                                               node_pool_config.get('serviceAccount', None))
         node_pool_builder.with_nodepool_labels(node_pool_config.get('nodepoolLabels', {}))
         
         create_op = node_pool_builder.build()
