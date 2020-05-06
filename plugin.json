@@ -5,7 +5,7 @@
         "label": "GKE clusters",
         "description": "Interact with Google Kubernetes Engine clusters",
         "author": "Dataiku",
-        "icon": "icon-cloud",
+        "icon": "icon-gcp-kubernetes-engine icon-cloud",
         "licenseInfo": "Apache Software License",
         "url": "https://github.com/dataiku/dss-plugin-gke-clusters",
         "tags": ["Cloud", "Google"],
