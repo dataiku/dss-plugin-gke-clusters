@@ -45,8 +45,8 @@ class MyCluster(Cluster):
             node_pool_builder.with_machine_type(node_pool.get('machineType', None))
             node_pool_builder.with_disk_type(node_pool.get('diskType', None))
             node_pool_builder.with_disk_size_gb(node_pool.get('diskSizeGb', None))
-            node_pool_builder.with_service_account(node_pool.get('serviceAccount', None),
-                                                   node_pool.get('customNodepoolServiceAccount', None))
+            node_pool_builder.with_service_account(node_pool.get('serviceAccountType', None),
+                                                   node_pool.get('serviceAccount', None))
             node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
             node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
             node_pool_builder.with_nodepool_labels(node_pool.get('nodepoolLabels', {}))

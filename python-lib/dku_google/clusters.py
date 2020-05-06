@@ -81,12 +81,15 @@ class NodePoolBuilder(object):
         """
 
         if service_account_type == "fromDSSHost":
+            logging.info("Custer nodes will inherit the DSS host Service Account")
             self.service_account = get_instance_service_account()
-        elif service_account_type == "custom":
-            if len(custom_service_account_name) == 0:
+        if service_account_type == "custom":
+            if _is_none_or_blank(custom_service_account_name):
+                logging.info("Cluster nodes will have the default Compute Engine Service Account")
                 self.service_account = ""
-        else:
-            self.service_account = custom_service_account_name
+            else:
+                logging.info("Cluster nodes will have the custom Service Account: {}".format(custom_service_account_name))
+                self.service_account = custom_service_account_name
         return self
     
     def with_settings_valve(self, settings_valve):
@@ -257,8 +260,8 @@ class ClusterBuilder(object):
             ip_allocation_policy = {
                 "createSubnetwork": False,
                 "useIpAliases": True,
-                "servicesIpv4CidrBlock": cluster_pod_ip_range,
-                "clusterIpv4CidrBlock": cluster_svc_ip_range,
+                "servicesIpv4CidrBlock": cluster_svc_ip_range,
+                "clusterIpv4CidrBlock": cluster_pod_ip_range,
             }
             create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
 
@@ -383,8 +386,6 @@ class Cluster(object):
     def get_location_params(self):
         params = self.clusters.get_location_params().copy()
         params["clusterId"] = self.name
-        print("YOLO")
-        print(params)
         return params
     
     def get_node_pools_api(self):

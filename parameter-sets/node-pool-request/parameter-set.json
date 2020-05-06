@@ -123,7 +123,7 @@
             "description": "Leave blank to use the Compute Engine default service account",
             "type": "STRING",
             "mandatory": false,
-            "visibilityCondition": "model.serviceAccount == 'custom'"
+            "visibilityCondition": "model.serviceAccountType == 'custom'"
         },
         {
             "name": "diskType",

@@ -61,7 +61,6 @@ def get_instance_info():
 
     metadata_flavor = {"Metadata-Flavor": "Google"}
     instance_info = {}
-    # Project name
     instance_info["project"] = requests.get("/".join([METADATA_SERVER_BASE_URL,
                                                       "project",
                                                       "project-id"]),
@@ -73,7 +72,7 @@ def get_instance_info():
     zone = zone_full.split("/")[-1] 
     instance_info["zone"] = zone
     instance_info["region"] = zone.split("-")[:-1]
-    instance_info["vm_name"] = requests.get("/"/join([METADATA_SERVER_BASE_URL,
+    instance_info["vm_name"] = requests.get("/".join([METADATA_SERVER_BASE_URL,
                                                       "instance",
                                                       "name"]),
                                             headers=metadata_flavor).text
@@ -88,7 +87,7 @@ def get_instance_network():
     instance_info = get_instance_info()
     cmd = ["gcloud", "compute", "instances", "describe"]
     cmd += [
-                    instance_info["name"],
+                    instance_info["vm_name"],
                     "--project",
                     instance_info["project"],
                     "--zone",
@@ -96,7 +95,7 @@ def get_instance_network():
                     "--format=json"
                 ]   
     instance_full_info = json.loads(_run_cmd(cmd))
-    network_interfaces = instance_info["networkInterfaces"]
+    network_interfaces = instance_full_info["networkInterfaces"]
     default_nic = network_interfaces[0]
     if len(network_interfaces) > 1:
         logging.info("WARNING! Multiple NICs detected, will use {}".format(default_nic))
@@ -112,7 +111,7 @@ def get_instance_service_account():
 
     logging.info("Retrieving gcloud auth info")
     cmd = ["gcloud", "auth", "list", "--format=json"]
-    instance_auth_info = json.loads(run_cmd(cmd))
+    instance_auth_info = json.loads(_run_cmd(cmd))
     for identity in instance_auth_info:
         if identity["status"] == "ACTIVE":
             instance_active_sa = identity["account"]
