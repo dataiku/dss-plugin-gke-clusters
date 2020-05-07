@@ -102,10 +102,11 @@ class NodePoolBuilder(object):
         self.gpu_count = gpu_count
         return self
 
-    def with_nodepool_labels(self, nodepool_labels = {}):
-        self.nodepool_labels.update(nodepool_labels)
-        if self.nodepool_labels:
-            logging.info("Adding labels {} to node pool {}".format(self.nodepool_labels, self.name))
+    def with_nodepool_labels(self, nodepool_labels=[]):
+        if nodepool_labels:
+            nodepool_labels_dict = {l["from"]: l["to"] for l in nodepool_labels}
+            logging.info("Adding labels {} to node pool {}".format(nodepool_labels_dict, self.name))
+            self.nodepool_labels.update(nodepool_labels_dict)
         return self
 
     def build(self):
