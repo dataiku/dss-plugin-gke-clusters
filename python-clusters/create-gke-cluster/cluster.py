@@ -28,10 +28,13 @@ class MyCluster(Cluster):
         cluster_builder.with_name(self.cluster_name)
         cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
         cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
-        cluster_builder.with_network(self.config.get("network", "").strip(), self.config.get("subNetwork", "").strip())
+        cluster_builder.with_network(self.config.get("inheritFromDSSHost", True),
+                                     self.config.get("network", "").strip(),
+                                     self.config.get("subNetwork", "").strip())
         cluster_builder.with_vpc_native_settings(self.config.get("isVpcNative", None),
                                                  self.config.get("podIpRange", ""),
                                                  self.config.get("svcIpRange", ""))
+        cluster_builder.with_labels(self.config.get("clusterLabels", {}))
         cluster_builder.with_legacy_auth(self.config.get("legacyAuth", False))
         cluster_builder.with_http_load_balancing(self.config.get("httpLoadBalancing", False))
         for node_pool in self.config.get('nodePools', []):
@@ -42,9 +45,11 @@ class MyCluster(Cluster):
             node_pool_builder.with_machine_type(node_pool.get('machineType', None))
             node_pool_builder.with_disk_type(node_pool.get('diskType', None))
             node_pool_builder.with_disk_size_gb(node_pool.get('diskSizeGb', None))
-            node_pool_builder.with_service_account(node_pool.get('serviceAccount', None))
+            node_pool_builder.with_service_account(node_pool.get('serviceAccountType', None),
+                                                   node_pool.get('serviceAccount', None))
             node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
             node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
+            node_pool_builder.with_nodepool_labels(node_pool.get('nodepoolLabels', {}))
             node_pool_builder.build()
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
         

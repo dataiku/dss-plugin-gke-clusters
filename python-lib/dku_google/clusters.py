@@ -1,7 +1,8 @@
 from googleapiclient import discovery
 from six import text_type
 from googleapiclient.errors import HttpError
-from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_project_region_and_zone
+from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_instance_info
+from dku_google.gcloud import get_instance_network, get_instance_service_account
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
 
 import os, sys, json, re
@@ -26,6 +27,7 @@ class NodePoolBuilder(object):
         self.gpu_type = None
         self.gpu_count = None
         self.service_account = None
+        self.nodepool_labels = {}
  
     def with_name(self, name):
         self.name = name
@@ -72,8 +74,22 @@ class NodePoolBuilder(object):
         self.disk_size_gb = disk_size_gb
         return self
     
-    def with_service_account(self, service_account):
-        self.service_account = service_account
+    def with_service_account(self, service_account_type, custom_service_account_name):
+        """
+        Change default service account on cluster nodes.
+        Requires the iam.serviceAccountUser IAM permission.
+        """
+
+        if service_account_type == "fromDSSHost":
+            logging.info("Custer nodes will inherit the DSS host Service Account")
+            self.service_account = get_instance_service_account()
+        if service_account_type == "custom":
+            if _is_none_or_blank(custom_service_account_name):
+                logging.info("Cluster nodes will have the default Compute Engine Service Account")
+                self.service_account = ""
+            else:
+                logging.info("Cluster nodes will have the custom Service Account: {}".format(custom_service_account_name))
+                self.service_account = custom_service_account_name
         return self
     
     def with_settings_valve(self, settings_valve):
@@ -84,6 +100,13 @@ class NodePoolBuilder(object):
         self.enable_gpu = enable_gpu
         self.gpu_type = gpu_type
         self.gpu_count = gpu_count
+        return self
+
+    def with_nodepool_labels(self, nodepool_labels=[]):
+        if nodepool_labels:
+            nodepool_labels_dict = {l["from"]: l["to"] for l in nodepool_labels}
+            logging.info("Adding labels {} to node pool {}".format(nodepool_labels_dict, self.name))
+            self.nodepool_labels.update(nodepool_labels_dict)
         return self
 
     def build(self):
@@ -110,13 +133,13 @@ class NodePoolBuilder(object):
             "autoUpgrade": True,
             "autoRepair": True
         }
-        
         if self.enable_autoscaling:
             node_pool['autoscaling'] = {
                                             "enabled":True,
                                             "minNodeCount":self.min_node_count if self.min_node_count is not None else node_pool['initialNodeCount'],
                                             "maxNodeCount":self.max_node_count if self.max_node_count is not None else node_pool['initialNodeCount']
                                         }
+        node_pool["config"]["labels"] = self.nodepool_labels
             
         if not _is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
@@ -155,9 +178,17 @@ class ClusterBuilder(object):
         self.version = version
         return self
     
-    def with_network(self, network, subnetwork):
-        self.network = _default_if_blank(network, None)
-        self.subnetwork = _default_if_blank(subnetwork, None)
+    def with_network(self, is_same_network_as_dss, network, subnetwork):
+        self.is_same_network_as_dss = is_same_network_as_dss
+        if self.is_same_network_as_dss:
+            logging.info("Cluster network/subnetwork is the SAME AS DSS HOST")
+            self.network, self.subnetwork = get_instance_network()
+        else:
+            logging.info("Cluster network/subnetwork is set EXPLICITLY")
+            self.network = _default_if_blank(network, None)
+            self.subnetwork = _default_if_blank(subnetwork, None)
+        logging.info("Cluster network is {}".format(self.network))
+        logging.info("Cluster subnetwork is {}".format(self.subnetwork))
         return self
     
     def get_node_pool_builder(self):
@@ -171,8 +202,10 @@ class ClusterBuilder(object):
         self.node_count = node_count
         return self
     
-    def with_label(self, **kwargs):
-        self.labels.update(kwargs)
+    def with_labels(self, labels={}):
+        self.labels.update(labels)
+        if self.labels:
+            logging.info("Adding labels {}".format(str(self.labels)))
         return self
 
     def with_vpc_native_settings(self, is_vpc_native, pod_ip_range, svc_ip_range):
@@ -228,8 +261,8 @@ class ClusterBuilder(object):
             ip_allocation_policy = {
                 "createSubnetwork": False,
                 "useIpAliases": True,
-                "servicesIpv4CidrBlock": cluster_pod_ip_range,
-                "clusterIpv4CidrBlock": cluster_svc_ip_range,
+                "servicesIpv4CidrBlock": cluster_svc_ip_range,
+                "clusterIpv4CidrBlock": cluster_pod_ip_range,
             }
             create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
 
@@ -354,8 +387,6 @@ class Cluster(object):
     def get_location_params(self):
         params = self.clusters.get_location_params().copy()
         params["clusterId"] = self.name
-        print("YOLO")
-        print(params)
         return params
     
     def get_node_pools_api(self):
@@ -463,15 +494,16 @@ class Cluster(object):
 class Clusters(object):
     def __init__(self, project_id, zone, credentials=None):
         logging.info("Connect using project_id=%s zone=%s credentials=%s" % (project_id, zone, credentials))
+        instance_info = get_instance_info()
         if _is_none_or_blank(project_id):
-            default_project, default_region, default_zone = get_project_region_and_zone()
+            default_project = instance_info["project"]
+            logging.info("No project specified, using {} as default".format(default_project))
             self.project_id = default_project
         else:
             self.project_id = project_id
         if _is_none_or_blank(zone):
-            print("ZONE IS BLANK")
-            default_project, default_region, default_zone = get_project_region_and_zone()
-            print("PROJECT {}/REGION {}/ZONE {}".format(default_project, default_region, default_zone))
+            default_zone = instance_info["zone"]
+            logging.info("No zone specified, using {} as default".format(default_zone))
             self.zone = default_zone
         else:
             self.zone = zone
