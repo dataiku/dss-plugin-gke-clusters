@@ -8,6 +8,9 @@ For more details, please see [the DSS reference documentation](https://doc.datai
 
 ## Release notes
 
+### v1.1.1
+- Fix `Test network connectivity` macro when the hostname is already an IP.
+
 ### v1.1.0
 
 - Clusters are now reusing the DSS host's VPC and subnetwork by default (can be changed by unticking the related parameter). Requires the `compute.zones.list` IAM permission.
