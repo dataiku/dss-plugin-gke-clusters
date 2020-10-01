@@ -8,6 +8,9 @@ For more details, please see [the DSS reference documentation](https://doc.datai
 
 ## Release notes
 
+### v1.1.2
+- Fix string encoding issues in test network connectivity macro
+
 ### v1.1.1
 - Fix `Test network connectivity` macro when the hostname is already an IP.
 
