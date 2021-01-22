@@ -23,3 +23,9 @@ For more details, please see [the DSS reference documentation](https://doc.datai
 ### v1.0.1
 
 - Clusters created from the plugin are now VPC-native by default.
+
+
+## License
+Copyright (C) 2019-2021 Dataiku
+
+Licensed under the Apache License, version 2.0
