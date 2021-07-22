@@ -35,7 +35,7 @@ class MyRunnable(Runnable):
         result = result + '<h5>Checking connectivity to %s:%s from pod in cluster</h5>' % (host, port)
         
         def add_to_result(result, op, cmd, out, err):
-             return result + '<h5>%s</h5><div style="margin-left: 20px;"><div>Command</div><pre class="debug">%s</pre><div>Output</div><pre class="debug">%s</pre><div>Error</div><pre class="debug">%s</pre></div>' % (op, json.dumps(cmd), str(out.decode()), str(err.decode()))
+             return result + '<h5>%s</h5><div style="margin-left: 20px;"><div>Command</div><pre class="debug">%s</pre><div>Output</div><pre class="debug">%s</pre><div>Error</div><pre class="debug">%s</pre></div>' % (op, json.dumps(cmd), out, err)
 
         try:
             # sanity check
@@ -51,8 +51,8 @@ class MyRunnable(Runnable):
                     ip = None
                     cmd = ['nslookup', host]
                     out, err = b.exec_cmd(cmd)
-                    result =  result + '<h5>Resolve host</h5><div style="margin-left: 20px;"><div>Command</div><pre class="debug">%s</pre><div>Output</div><pre class="debug">%s</pre><div>Error</div><pre class="debug">%s</pre></div>' % (json.dumps(cmd), str(out.decode()), str(err.decode()))
-                    for line in str(out.decode()).split('\n'):
+                    result =  result + '<h5>Resolve host</h5><div style="margin-left: 20px;"><div>Command</div><pre class="debug">%s</pre><div>Output</div><pre class="debug">%s</pre><div>Error</div><pre class="debug">%s</pre></div>' % (json.dumps(cmd), out, err)
+                    for line in out.split('\n'):
                         m = re.match('^Address.*\\s([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+[^\\s]*)\\s.*$', line)
                         if m is not None:
                             ip = m.group(1)
@@ -64,15 +64,15 @@ class MyRunnable(Runnable):
                 # try to connect on the backend port
                 cmd = ['nc', '-vz', ip, port, '-w', '5']
                 out, err = b.exec_cmd(cmd, timeout=10)
-                result =  result + '<h5>Test connection to port</h5><div style="margin-left: 20px;"><div>Command</div><pre class="debug">%s</pre><div>Debug (stderr)</div><pre class="debug">%s</pre></div>' % (json.dumps(cmd), str(err.decode()))
-                if 'no route to host' in str(err.decode()).lower():
+                result =  result + '<h5>Test connection to port</h5><div style="margin-left: 20px;"><div>Command</div><pre class="debug">%s</pre><div>Debug (stderr)</div><pre class="debug">%s</pre></div>' % (json.dumps(cmd), err)
+                if 'no route to host' in err.lower():
                     raise Exception("DSS node resolved but unreachable on port %s : %s" % (str(port), err))
 
                 result = result + '<h5>Connection successful</h5>'
 
         except KubeCommandException as e:
             traceback.print_exc()
-            result = result + '<div class="alert alert-error"><div>%s</div><div>out:</div><pre>%s</pre><div>err:</div><pre>%s</pre></div>' % (str(e), str(e.out.decode()), str(e.err.decode()))
+            result = result + '<div class="alert alert-error"><div>%s</div><div>out:</div><pre>%s</pre><div>err:</div><pre>%s</pre></div>' % (str(e), e.out, e.err)
         except Exception as e:
             traceback.print_exc()
             result = result + '<div class="alert alert-error">%s</div>' % str(e)
