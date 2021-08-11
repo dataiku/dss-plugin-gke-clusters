@@ -64,7 +64,7 @@
         {
             "name": "podIpRange",
             "label": "Pod IP range",
-            "description": "Use CIDR block/mask notation, e.g. 10.0.0.0/24 or /24",
+            "description": "Use CIDR block/mask notation, e.g. 10.0.0.0/21 or /21",
             "type": "STRING",
             "mandatory": false,
             "visibilityCondition": "model.isVpcNative"
