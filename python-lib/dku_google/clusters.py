@@ -112,6 +112,7 @@ class NodePoolBuilder(object):
 
     def with_nodepool_tags(self, nodepool_tags=[]):
         if nodepool_tags:
+            logging.info("Adding network tags {} to node pool {}".format(nodepool_tags, self.name))
             for tag in nodepool_tags:
                 self.nodepool_tags.append(tag)
         return self

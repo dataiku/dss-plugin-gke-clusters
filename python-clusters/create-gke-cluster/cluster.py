@@ -50,7 +50,7 @@ class MyCluster(Cluster):
             node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
             node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
             node_pool_builder.with_nodepool_labels(node_pool.get('nodepoolLabels', {}))
-            node_pool_builder.with_nodepool_tags(self.config.get('nodepoolTags', []))
+            node_pool_builder.with_nodepool_tags(node_pool.get('networkTags', []))
             node_pool_builder.build()
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
         

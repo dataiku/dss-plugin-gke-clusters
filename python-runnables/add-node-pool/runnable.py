@@ -57,7 +57,8 @@ class MyRunnable(Runnable):
         node_pool_builder.with_service_account(node_pool_config.get('serviceAccountType', None),
                                                node_pool_config.get('serviceAccount', None))
         node_pool_builder.with_nodepool_labels(node_pool_config.get('nodepoolLabels', {}))
-        
+        node_pool_builder.with_nodepool_tags(node_pool_config.config.get('networkTags', []))
+
         create_op = node_pool_builder.build()
         logging.info("Waiting for cluster node pool creation")
         create_op.wait_done()

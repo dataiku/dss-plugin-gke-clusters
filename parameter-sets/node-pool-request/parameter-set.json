@@ -94,6 +94,13 @@
             "type": "STRING",
             "mandatory" : false
         },
+        {
+            "name": "networkTags",
+            "type": "STRINGS",
+            "label": "Network tags",
+            "description": "Tags represent firewall rules applied to each node",
+            "defaultValue": ["dss-gke-cluster"]
+        },
 
         {
             "type":"SEPARATOR",

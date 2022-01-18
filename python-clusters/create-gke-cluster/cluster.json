@@ -78,13 +78,6 @@
             "visibilityCondition": "model.isVpcNative"
         },
         {
-            "name": "nodepoolTags",
-            "type": "STRINGS",
-            "label": "Network tags",
-            "description": "Network tags to each node",
-            "defaultValue": ["dss-gke-cluster"]
-        },
-        {
             "name": "s-nodes",
             "type":"SEPARATOR",
             "label": "Cluster nodes"
