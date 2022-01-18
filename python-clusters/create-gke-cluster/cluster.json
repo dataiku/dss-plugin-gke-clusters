@@ -64,7 +64,7 @@
         {
             "name": "podIpRange",
             "label": "Pod IP range",
-            "description": "Use CIDR block/mask notation, e.g. 10.0.0.0/21 or /21",
+            "description": "Range name or CIDR block/mask notation, e.g. 10.0.0.0/21 or /21. If using a named range, ensure it is larger than /21.",
             "type": "STRING",
             "mandatory": false,
             "visibilityCondition": "model.isVpcNative"
@@ -72,7 +72,7 @@
         {
             "name": "svcIpRange",
             "label": "Service IP range",
-            "description": "Use CIDR block/mask notation, e.g. 10.0.0.0/24 or /24. MUST be different from pod IP range.",
+            "description": "Range name or CIDR block/mask notation, e.g. 10.0.0.0/24 or /24. MUST be different from pod IP range.",
             "type": "STRING",
             "mandatory": false,
             "visibilityCondition": "model.isVpcNative"

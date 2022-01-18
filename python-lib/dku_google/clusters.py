@@ -220,6 +220,8 @@ class ClusterBuilder(object):
     def with_vpc_native_settings(self, is_vpc_native, pod_ip_range, svc_ip_range):
         if is_vpc_native:
             self.is_vpc_native = is_vpc_native
+            if pod_ip_range is not None and len(pod_ip_range) > 0 and pod_ip_range == svc_ip_range:
+                raise Exception("Service IP range must be different from pod IP range")
             self.pod_ip_range = pod_ip_range
             self.svc_ip_range = svc_ip_range
         return self
@@ -269,10 +271,18 @@ class ClusterBuilder(object):
         if self.is_vpc_native:
             ip_allocation_policy = {
                 "createSubnetwork": False,
-                "useIpAliases": True,
-                "servicesIpv4CidrBlock": cluster_svc_ip_range,
-                "clusterIpv4CidrBlock": cluster_pod_ip_range,
+                "useIpAliases": True
             }
+            if re.match('[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+', cluster_svc_ip_range):
+                ip_allocation_policy["servicesIpv4CidrBlock"] = cluster_svc_ip_range
+            elif cluster_svc_ip_range is not None and len(cluster_svc_ip_range) > 0:
+                # assume it's an existing range name (shared VPC case)
+                ip_allocation_policy["servicesSecondaryRangeName"] = cluster_svc_ip_range
+            if re.match('[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+', cluster_pod_ip_range):
+                ip_allocation_policy["clusterIpv4CidrBlock"] = cluster_pod_ip_range
+            elif cluster_pod_ip_range is not None and len(cluster_pod_ip_range) > 0:
+                # assume it's an existing range name (shared VPC case)
+                ip_allocation_policy["clusterSecondaryRangeName"] = cluster_pod_ip_range
             create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
 
         if self.legacy_auth:
