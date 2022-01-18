@@ -211,6 +211,8 @@ class ClusterBuilder(object):
     def with_vpc_native_settings(self, is_vpc_native, pod_ip_range, svc_ip_range):
         if is_vpc_native:
             self.is_vpc_native = is_vpc_native
+            if pod_ip_range is not None and len(pod_ip_range) > 0 and pod_ip_range == svc_ip_range:
+                raise Exception("Service IP range must be different from pod IP range")
             self.pod_ip_range = pod_ip_range
             self.svc_ip_range = svc_ip_range
         return self
