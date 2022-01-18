@@ -28,6 +28,7 @@ class NodePoolBuilder(object):
         self.gpu_count = None
         self.service_account = None
         self.nodepool_labels = {}
+        self.nodepool_tags = []
  
     def with_name(self, name):
         self.name = name
@@ -109,6 +110,13 @@ class NodePoolBuilder(object):
             self.nodepool_labels.update(nodepool_labels_dict)
         return self
 
+    def with_nodepool_tags(self, nodepool_tags=[]):
+        if nodepool_tags:
+            logging.info("Adding network tags {} to node pool {}".format(nodepool_tags, self.name))
+            for tag in nodepool_tags:
+                self.nodepool_tags.append(tag)
+        return self
+
     def build(self):
         node_pool = {'config':{}}
         node_pool['name'] = self.name if self.name is not None else 'node-pool'
@@ -140,6 +148,7 @@ class NodePoolBuilder(object):
                                             "maxNodeCount":self.max_node_count if self.max_node_count is not None else node_pool['initialNodeCount']
                                         }
         node_pool["config"]["labels"] = self.nodepool_labels
+        node_pool["config"]["tags"] = self.nodepool_tags
             
         if not _is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
