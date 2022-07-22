@@ -18,13 +18,13 @@ class MyCluster(Cluster):
         self.config = config
         self.plugin_config = plugin_config
         self.global_settings = global_settings
-        
+
     def start(self):
         # build the create cluster request
         clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])
-        
+
         cluster_builder = clusters.new_cluster_builder()
-        
+
         cluster_builder.with_name(self.cluster_name)
         cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
         cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
@@ -49,22 +49,23 @@ class MyCluster(Cluster):
                                                    node_pool.get('serviceAccount', None))
             node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
             node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
+            node_pool_builder.with_spot_vms(node_pool.get('spotVms', False))
             node_pool_builder.with_nodepool_labels(node_pool.get('nodepoolLabels', {}))
             node_pool_builder.with_nodepool_tags(node_pool.get('networkTags', []))
             node_pool_builder.build()
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
-        
+
         start_op = cluster_builder.build()
-        
+
         # can take a few mins...
         logging.info("Waiting for cluster start")
         start_op.wait_done()
         logging.info("Cluster started")
-        
+
         # cluster is ready, fetch its info from GKE
         cluster = clusters.get_cluster(self.cluster_name)
         cluster_info = cluster.get_info()
-        
+
         # build the config file for kubectl
         # we don't add the context to the main config file, to not end up with an oversized config,
         # and because 2 different clusters could be concurrently editing the config file
@@ -72,21 +73,21 @@ class MyCluster(Cluster):
         kube_config = cluster.get_kube_config()
         with open(kube_config_path, 'w') as f:
             yaml.safe_dump(kube_config, f, default_flow_style=False)
-        
+
         # add the admin role so that we can do the managed kubernetes stuff for spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)
-        
+
         # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
-        create_installer_daemonset(kube_config_path=kube_config_path) 
-        
+        create_installer_daemonset(kube_config_path=kube_config_path)
+
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
         overrides = make_overrides(self.config, kube_config, kube_config_path)
         return [overrides, {'kube_config_path':kube_config_path, 'cluster':cluster_info}]
 
     def stop(self, data):
-        clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])  
+        clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])
         cluster = clusters.get_cluster(self.cluster_name)
-        stop_op = cluster.stop()    
+        stop_op = cluster.stop()
         logging.info("Waiting for cluster stop")
         stop_op.wait_done()
         logging.info("Cluster stopped")

@@ -26,33 +26,34 @@ class NodePoolBuilder(object):
         self.enable_gpu = False
         self.gpu_type = None
         self.gpu_count = None
+        self.spot_vms = False
         self.service_account = None
         self.nodepool_labels = {}
         self.nodepool_tags = []
- 
+
     def with_name(self, name):
         self.name = name
         return self
-    
+
     def with_node_count(self, node_count):
         self.node_count = node_count
         return self
-    
+
     def with_auto_scaling(self, enable, min_count, max_count):
         self.min_node_count = min_count
         self.max_node_count = max_count
         self.enable_autoscaling = enable
         return self
-    
+
     def add_oauth_scope(self, oauth_scope):
         if oauth_scope not in self.oauth_scopes:
             self.oauth_scopes.append(oauth_scope)
-    
+
     def use_gcr_io(self, use_gcr_io):
         if use_gcr_io == True:
             self.add_oauth_scope("https://www.googleapis.com/auth/devstorage.read_only")
         return self
-    
+
     def with_oauth_scopes(self, oauth_scopes):
         if isinstance(oauth_scopes, text_type):
             return self.with_oauth_scopes(oauth_scopes.split(','))
@@ -62,19 +63,19 @@ class NodePoolBuilder(object):
                     continue
                 self.add_oauth_scope(oauth_scope.strip())
         return self
-    
+
     def with_machine_type(self, machine_type):
         self.machine_type = machine_type
         return self
-    
+
     def with_disk_type(self, disk_type):
         self.disk_type = disk_type
         return self
-    
+
     def with_disk_size_gb(self, disk_size_gb):
         self.disk_size_gb = disk_size_gb
         return self
-    
+
     def with_service_account(self, service_account_type, custom_service_account_name):
         """
         Change default service account on cluster nodes.
@@ -92,7 +93,7 @@ class NodePoolBuilder(object):
                 logging.info("Cluster nodes will have the custom Service Account: {}".format(custom_service_account_name))
                 self.service_account = custom_service_account_name
         return self
-    
+
     def with_settings_valve(self, settings_valve):
         self.settings_valve = _default_if_blank(settings_valve, None)
         return self
@@ -101,6 +102,10 @@ class NodePoolBuilder(object):
         self.enable_gpu = enable_gpu
         self.gpu_type = gpu_type
         self.gpu_count = gpu_count
+        return self
+
+    def with_spot_vms(self, enable):
+        self.spot_vms = enable
         return self
 
     def with_nodepool_labels(self, nodepool_labels=[]):
@@ -130,26 +135,28 @@ class NodePoolBuilder(object):
             logging.info("GPU option enabled.")
             node_pool['config']['accelerators'] = [{'acceleratorCount': self.gpu_count,
                                                     'acceleratorType': self.gpu_type}]
+        if self.spot_vms:
+            node_pool['config']['spot'] = True
         if self.disk_size_gb is not None and self.disk_size_gb > 0:
             node_pool['config']['diskSizeGb'] = self.disk_size_gb
         node_pool['config']['oauthScopes'] = self.oauth_scopes
-        
+
         if not _is_none_or_blank(self.service_account):
             node_pool['config']['serviceAccount'] = self.service_account
-            
+
         node_pool["management"] = {
             "autoUpgrade": True,
             "autoRepair": True
         }
         if self.enable_autoscaling:
             node_pool['autoscaling'] = {
-                                            "enabled":True,
-                                            "minNodeCount":self.min_node_count if self.min_node_count is not None else node_pool['initialNodeCount'],
-                                            "maxNodeCount":self.max_node_count if self.max_node_count is not None else node_pool['initialNodeCount']
-                                        }
+                "enabled":True,
+                "minNodeCount":self.min_node_count if self.min_node_count is not None else node_pool['initialNodeCount'],
+                "maxNodeCount":self.max_node_count if self.max_node_count is not None else node_pool['initialNodeCount']
+            }
         node_pool["config"]["labels"] = self.nodepool_labels
         node_pool["config"]["tags"] = self.nodepool_tags
-            
+
         if not _is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
             node_pool = _merge_objects(node_pool, valve)
@@ -178,15 +185,15 @@ class ClusterBuilder(object):
         self.http_load_balancing = None
         self.node_pools = []
         self.settings_valve = None
-       
+
     def with_name(self, name):
         self.name = name
         return self
-    
+
     def with_version(self, version):
         self.version = version
         return self
-    
+
     def with_network(self, is_same_network_as_dss, network, subnetwork):
         self.is_same_network_as_dss = is_same_network_as_dss
         if self.is_same_network_as_dss:
@@ -199,18 +206,18 @@ class ClusterBuilder(object):
         logging.info("Cluster network is {}".format(self.network))
         logging.info("Cluster subnetwork is {}".format(self.subnetwork))
         return self
-    
+
     def get_node_pool_builder(self):
         return NodePoolBuilder(self).with_name('node-pool-%s' % len(self.node_pools))
-    
+
     def with_node_pool(self, node_pool):
         self.node_pools.append(node_pool)
         return self
-    
+
     def with_initial_node_count(self, node_count):
         self.node_count = node_count
         return self
-    
+
     def with_labels(self, labels={}):
         self.labels.update(labels)
         if self.labels:
@@ -225,11 +232,11 @@ class ClusterBuilder(object):
             self.pod_ip_range = pod_ip_range
             self.svc_ip_range = svc_ip_range
         return self
-    
+
     def with_legacy_auth(self, legacy_auth):
         self.legacy_auth = legacy_auth
         return self
-    
+
     def with_http_load_balancing(self, http_load_balancing):
         self.http_load_balancing = http_load_balancing
         return self
@@ -240,7 +247,7 @@ class ClusterBuilder(object):
 
     def _auto_name(self):
         return 'dku-cluster-' + ''.join([random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for i in range(0, 8)])
-    
+
     def build(self):
         cluster_name = self.name
         cluster_version = self.version
@@ -250,12 +257,12 @@ class ClusterBuilder(object):
         cluster_labels = self.labels
         cluster_pod_ip_range = self.pod_ip_range
         cluster_svc_ip_range = self.svc_ip_range
-        
+
         if _is_none_or_blank(cluster_name):
             cluster_name = self._auto_name()
         if cluster_node_count is None:
             cluster_node_count = 3
-            
+
         create_cluster_request_body = {
             "cluster" : {
                 "name": cluster_name,
@@ -287,7 +294,7 @@ class ClusterBuilder(object):
 
         if self.legacy_auth:
             create_cluster_request_body["cluster"]["legacyAbac"] = {"enabled":True}
-            
+
         need_issue_certificate = False
 
         if cluster_version == "latest" or cluster_version == "-":
@@ -297,14 +304,14 @@ class ClusterBuilder(object):
             major_version = int(version_chunks[0])
             minor_version = int(version_chunks[1])
             need_issue_certificate = major_version > 1 or (major_version == 1 and minor_version >= 12)
-                
+
         if need_issue_certificate:
             create_cluster_request_body["cluster"]["masterAuth"] = {
                                                                         "clientCertificateConfig" : {
                                                                             "issueClientCertificate" : True
                                                                         }
                                                                     }
-        
+
         create_cluster_request_body["cluster"]["addonsConfig"] = {}
         if self.http_load_balancing:
             create_cluster_request_body["cluster"]["addonsConfig"]["httpLoadBalancing"] = {"disabled":False}
@@ -313,33 +320,33 @@ class ClusterBuilder(object):
 
         for node_pool in self.node_pools:
             create_cluster_request_body['cluster']['nodePools'].append(node_pool)
-            
+
         if not _is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
             create_cluster_request_body["cluster"] = _merge_objects(create_cluster_request_body["cluster"], valve)
-                
+
         logging.info("Requesting cluster %s" % json.dumps(create_cluster_request_body, indent=2))
-                
+
         location_params = self.clusters.get_location_params()
         request = self.clusters.get_clusters_api().create(body=create_cluster_request_body, **location_params)
-        
+
         try:
             response = request.execute()
             return Operation(response, self.clusters.get_operations_api(), self.clusters.get_location_params())
         except HttpError as e:
             raise Exception("Failed to create cluster : %s" % str(e))
-    
+
 class NodePool(object):
     def __init__(self, name, cluster):
         self.name = name
         self.cluster = cluster
-        
+
     def get_info(self):
         location_params = self.cluster.get_location_params()
         request = self.cluster.get_node_pools_api().get(nodePoolId=self.name, **location_params)
         response = request.execute()
         return response
-    
+
     def get_instance_groups_info(self):
         node_pool_info = self.get_info()
         instance_groups = []
@@ -349,7 +356,7 @@ class NodePool(object):
             request = self.cluster.get_instance_groups_api().get(instanceGroup=instance_group_name, project=location_params["projectId"], zone=location_params["zone"])
             instance_groups.append(request.execute())
         return instance_groups
-        
+
     def resize(self, num_nodes):
         resize_cluster_request_body = {
             "nodeCount" : num_nodes
@@ -362,7 +369,7 @@ class NodePool(object):
             return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
         except HttpError as e:
             raise Exception("Failed to resize node pool : %s" % str(e))
-        
+
     def delete(self):
         location_params = self.cluster.get_location_params()
         request = self.cluster.get_node_pools_api().delete(nodePoolId=self.name, **location_params)
@@ -371,21 +378,21 @@ class NodePool(object):
             return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
         except HttpError as e:
             raise Exception("Failed to delete node pool : %s" % str(e))
-        
+
     def get_node_pool_builder(self):
         return NodePoolBuilder(self).with_name(self.name)
-    
+
     def create(self, node_pool_config):
         create_node_pool_request_body = {
             "nodePool" : node_pool_config,
             "parent" : self.cluster.get_location()
         }
-        
+
         logging.info("Requesting node pool %s" % json.dumps(create_node_pool_request_body, indent=2))
-                
+
         location_params = self.cluster.get_location_params()
         request = self.cluster.get_node_pools_api().create(body=create_node_pool_request_body, **location_params)
-        
+
         try:
             response = request.execute()
             return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
@@ -396,27 +403,27 @@ class Cluster(object):
     def __init__(self, name, clusters):
         self.name = name
         self.clusters = clusters
-        
+
     def get_location(self):
         return "%s/clusters/%s" % (self.clusters.get_location(), self.name)
-        
+
     def get_parent_location_params(self):
         return self.clusters.get_location_params()
-    
+
     def get_location_params(self):
         params = self.clusters.get_location_params().copy()
         params["clusterId"] = self.name
         return params
-    
+
     def get_node_pools_api(self):
         return self.clusters.get_clusters_api().nodePools()
-    
+
     def get_operations_api(self):
         return self.clusters.get_operations_api()
-        
+
     def get_instance_groups_api(self):
         return self.clusters.get_instance_groups_api()
-        
+
     def get_info(self):
         location_params = self.clusters.get_location_params()
         request = self.clusters.get_clusters_api().get(clusterId=self.name, **location_params)
@@ -425,16 +432,16 @@ class Cluster(object):
 
     def get_kube_config(self, cluster_id=None):
         response = self.get_info()
-        
+
         if _is_none_or_blank(cluster_id):
             cluster_id = self.name
-            
+
         logging.info("Response=%s" % json.dumps(response, indent=2))
-            
+
         legacy_auth = response.get("legacyAbac", {}).get("enabled", False)
         master_auth = response["masterAuth"]
         endpoint = response["endpoint"]
-        
+
         user = {
             "name": "user-%s" % cluster_id,
             "user": {}
@@ -456,7 +463,7 @@ class Cluster(object):
                                     }
                                 }
                             }
-        
+
         cluster = {
             "name": "cluster-%s" % cluster_id,
             "cluster": {
@@ -471,7 +478,7 @@ class Cluster(object):
                 "user": user["name"]
             }
         }
-        
+
         config = {
             "apiVersion": "v1",
             "kind": "Config",
@@ -482,22 +489,22 @@ class Cluster(object):
             "current-context": context["name"]
         }
         return config
-    
+
     def stop(self):
         location_params = self.clusters.get_location_params()
         print(location_params)
         request = self.clusters.get_clusters_api().delete(clusterId=self.name, **location_params)
-        
+
         try:
             response = request.execute()
             return Operation(response, self.clusters.get_operations_api(), self.clusters.get_location_params())
         except HttpError as e:
             raise Exception("Failed to stop cluster : %s" % str(e))
-            
+
     def get_node_pools(self):
         location_params = self.get_location_params()
         request = self.get_node_pools_api().list(**location_params)
-        
+
         try:
             response = request.execute()
             node_pools = []
@@ -506,10 +513,10 @@ class Cluster(object):
             return node_pools
         except HttpError as e:
             raise Exception("Failed to get node pools : %s" % str(e))
-        
+
     def get_node_pool(self, node_pool_id):
         return NodePool(node_pool_id, self)
-    
+
 class Clusters(object):
     def __init__(self, project_id, zone, credentials=None):
         logging.info("Connect using project_id=%s zone=%s credentials=%s" % (project_id, zone, credentials))
@@ -528,24 +535,24 @@ class Clusters(object):
             self.zone = zone
         self.service = discovery.build('container', 'v1', credentials=credentials, cache_discovery=False)
         self.compute = discovery.build('compute', 'v1', credentials=credentials, cache_discovery=False)
-        
+
     def get_location(self):
         return "projects/%s/locations/%s" % (self.project_id, self.zone)
-        
+
     def get_location_params(self):
         return {"projectId":self.project_id, "zone":self.zone}
-    
+
     def get_operations_api(self):
         return self.service.projects().zones().operations()
-    
+
     def get_clusters_api(self):
         return self.service.projects().zones().clusters()
-    
+
     def get_instance_groups_api(self):
         return self.compute.instanceGroups()
-    
+
     def new_cluster_builder(self):
         return ClusterBuilder(self)
-    
+
     def get_cluster(self, name):
         return Cluster(name, self)

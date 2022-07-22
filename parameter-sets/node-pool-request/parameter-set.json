@@ -5,10 +5,10 @@
         "description" : "Predefined configurations for GKE node pools",
         "icon" : "icon-tasks"
     },
-    
+
     "defaultDefinableAtProjectLevel" : true,
     "defaultDefinableInline" : true,
-    
+
     "pluginParams": [
     ],
 
@@ -44,6 +44,14 @@
             "defaultValue": 1,
             "visibilityCondition": "model.withGpu"
         },
+	{
+	    "name": "spotVms",
+	    "label": "Use spot VMs",
+	    "description": "Enable nodes on spot VMs",
+	    "type": "BOOLEAN",
+	    "defaultValue": false,
+	    "mandatory": true
+	},
         {
             "name": "numNodes",
             "label": "Default number of nodes",
