@@ -12,15 +12,15 @@ class MyRunnable(Runnable):
         self.project_key = project_key
         self.config = config
         self.plugin_config = plugin_config
-        
+
     def get_progress_target(self):
         return None
 
     def run(self, progress_callback):
         cluster_data, clusters, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
-        
+
         kube_config_path = dss_cluster_settings.get_raw()['containerSettings']['executionConfigsGenericOverrides']['kubeConfigPath']
-        
+
         # retrieve the actual name in the cluster's data
         if cluster_data is None:
             raise Exception("No cluster data (not started?)")
@@ -28,10 +28,10 @@ class MyRunnable(Runnable):
         if cluster_def is None:
             raise Exception("No cluster definition (starting failed?)")
         cluster_name = cluster_def["name"]
-        
+
         # get the object for the cluster, GKE side
         cluster = clusters.get_cluster(cluster_name)
-        
+
         node_pool_id = self.config.get('nodePoolId', None)
         node_pools = cluster.get_node_pools()
         if node_pool_id is None or len(node_pool_id) == 0:
@@ -40,9 +40,9 @@ class MyRunnable(Runnable):
             while ('node-pool-%s' % cnt) in node_pool_ids:
                 cnt += 1
             node_pool_id = 'node-pool-%s' % cnt
-        
+
         node_pool = cluster.get_node_pool(node_pool_id)
-        
+
         node_pool_config = self.config.get("nodePoolConfig", {})
         node_pool_builder = node_pool.get_node_pool_builder()
         node_pool_builder.with_node_count(node_pool_config.get('numNodes', 3))
@@ -57,7 +57,7 @@ class MyRunnable(Runnable):
         node_pool_builder.with_service_account(node_pool_config.get('serviceAccountType', None),
                                                node_pool_config.get('serviceAccount', None))
         node_pool_builder.with_nodepool_labels(node_pool_config.get('nodepoolLabels', {}))
-        node_pool_builder.with_nodepool_tags(node_pool_config.config.get('networkTags', []))
+        node_pool_builder.with_nodepool_tags(node_pool_config.get('networkTags', []))
 
         create_op = node_pool_builder.build()
         logging.info("Waiting for cluster node pool creation")
