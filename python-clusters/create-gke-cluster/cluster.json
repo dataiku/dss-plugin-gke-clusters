@@ -18,7 +18,6 @@
             "parameterSetId" : "connection-info",
             "mandatory" : true
         },
-
         {
             "name": "clusterVersion",
             "label": "Kubernetes version",
@@ -36,14 +35,14 @@
             "label": "Inherit DSS host settings",
             "type": "BOOLEAN",
             "description": "Create cluster in same VPC/subnetwork as DSS host",
-            "default": true
+            "defaultValue": true
         },
         {
             "name": "network",
             "label": "Network",
             "description": "Falls back to 'default' if empty",
             "type": "STRING",
-            "mandatory" : false,
+            "mandatory": false,
             "visibilityCondition": "!model.inheritFromDSSHost"
         },
         {
@@ -51,7 +50,7 @@
             "label": "Subnetwork",
             "description": "Falls back to 'default' if empty",
             "type": "STRING",
-            "mandatory" : false,
+            "mandatory": false,
             "visibilityCondition": "!model.inheritFromDSSHost"
         },
         {
@@ -87,8 +86,8 @@
             "label": "Node pools",
             "description": "Node pools to create in the cluster",
             "type": "PRESETS",
-            "parameterSetId" : "node-pool-request",
-            "mandatory" : true
+            "parameterSetId": "node-pool-request",
+            "mandatory": true
         },
          {
             "type":"SEPARATOR",
@@ -105,21 +104,21 @@
             "label": "HTTP load balancing",
             "description": "Enable interaction with Google Cloud's load balancing abilities",
             "type": "BOOLEAN",
-            "defaultValue" : true
+            "defaultValue": true
         },
         {
             "name": "legacyAuth",
             "label": "Legacy auth",
             "description": "Use client certificate instead of GCP auth provider",
             "type": "BOOLEAN",
-            "defaultValue" : false
+            "defaultValue": false
         },
         {
             "name": "creationSettingsValve",
             "label": "Custom creation settings",
             "description": "Additional settings for the cluster creation call, as JSON",
             "type": "TEXTAREA",
-            "mandatory" : false
+            "mandatory": false
         }
     ]
 }
