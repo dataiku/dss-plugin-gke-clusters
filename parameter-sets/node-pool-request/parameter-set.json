@@ -119,7 +119,7 @@
                     "label": "Custom"
                 }
             ],
-            "defaultValue": "custom"
+            "defaultValue": "fromDSSHost"
         },
         {
             "name": "serviceAccount",
