@@ -2,6 +2,7 @@
 
 ##  Next version
 - Fix action "Add node pool"
+- Change default value for "Inherit DSS host settings" when creating a cluster
 
 ## Version 1.1.4 - Feature release
 - Add ability to use named secondary ranges
