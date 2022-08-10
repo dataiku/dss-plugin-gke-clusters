@@ -1,17 +1,14 @@
 {
-    "meta" : {
-        "label" : "Node pool",
-        "pluralLabel" : "Node pools",
-        "description" : "Predefined configurations for GKE node pools",
-        "icon" : "icon-tasks"
+    "meta": {
+        "label": "Node pool",
+        "pluralLabel": "Node pools",
+        "description": "Predefined configurations for GKE node pools",
+        "icon": "icon-tasks"
     },
-    
-    "defaultDefinableAtProjectLevel" : true,
-    "defaultDefinableInline" : true,
-    
+    "defaultDefinableAtProjectLevel": true,
+    "defaultDefinableInline": true,
     "pluginParams": [
     ],
-
     "params": [
        {
             "name": "machineType",
@@ -19,7 +16,7 @@
             "description": "GCE machine type for the nodes. See GCP documentation for available machine types.",
             "type": "STRING",
             "defaultValue":  "n1-highmem-8",
-            "mandatory" : false
+            "mandatory": false
         },
         {
             "name": "withGpu",
@@ -48,51 +45,51 @@
             "name": "numNodes",
             "label": "Default number of nodes",
             "type": "INT",
-            "mandatory" : true,
-            "defaultValue" : 3
+            "mandatory": true,
+            "defaultValue": 3
         },
         {
             "name": "numNodesAutoscaling",
             "label": "Enable nodes autoscaling",
             "type": "BOOLEAN",
-            "mandatory" : true,
-            "defaultValue" : false
+            "mandatory": true,
+            "defaultValue": false
         },
         {
             "name": "minNumNodes",
             "label": "Min number of nodes",
             "type": "INT",
-            "mandatory" : true,
-            "defaultValue" : 2,
-            "visibilityCondition" : "model.numNodesAutoscaling"
+            "mandatory": true,
+            "defaultValue": 2,
+            "visibilityCondition": "model.numNodesAutoscaling"
         },
         {
             "name": "maxNumNodes",
             "label": "Max number of nodes",
             "type": "INT",
-            "mandatory" : true,
-            "defaultValue" : 5,
-            "visibilityCondition" : "model.numNodesAutoscaling"
+            "mandatory": true,
+            "defaultValue": 5,
+            "visibilityCondition": "model.numNodesAutoscaling"
         },
 
         {
-            "type":"SEPARATOR",
-            "label" :"Security"
+            "type": "SEPARATOR",
+            "label": "Security"
         },
         {
             "name": "useGcrIo",
             "label": "Allow access to gcr.io",
             "description": "Required to pull images from GCR. Adds 'https://www.googleapis.com/auth/devstorage.read_only' in the OAuth scopes",
             "type": "BOOLEAN",
-            "defaultValue" : true,
-            "mandatory" : false
+            "defaultValue": true,
+            "mandatory": false
         },
         {
             "name": "oauthScopes",
             "label": "OAuth scopes",
             "description": "Additional OAuth scopes for the nodes, comma-separated. Not usually required.",
             "type": "STRING",
-            "mandatory" : false
+            "mandatory": false
         },
         {
             "name": "networkTags",
@@ -103,8 +100,8 @@
         },
 
         {
-            "type":"SEPARATOR",
-            "label" :"Advanced options"
+            "type": "SEPARATOR",
+            "label": "Advanced options"
         },
         {
             "name": "serviceAccountType",
@@ -137,14 +134,14 @@
             "label": "Disk type",
             "description": "Disk type for the nodes (pd-standard or pd-ssd). Leave empty for default (pd-standard)",
             "type": "STRING",
-            "mandatory" : false
+            "mandatory": false
         },
         {
             "name": "diskSizeGb",
             "label": "Disk size (GB)",
             "description": "Disk size for the nodes in gigabytes. Leave 0 for default (currently: 100GB).",
             "type": "INT",
-            "mandatory" : false
+            "mandatory": false
         },
         {
             "name": "nodepoolLabels",
