@@ -22,7 +22,8 @@ class MyCluster(Cluster):
         # this will fail if the cluster doesn't exist, but the API message is enough
         clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])
                 
-        cluster = clusters.get_cluster(self.config.get('clusterId', self.cluster_name))
+        is_regional = self.config.get('isRegional', False)
+        cluster = clusters.get_cluster(self.config.get('clusterId', self.cluster_name), 'regional' if is_regional else 'zonal')
         cluster_info = cluster.get_info()
 
         # build the config file for kubectl

@@ -393,10 +393,11 @@ class NodePool(object):
             raise Exception("Failed to create node pool : %s" % str(e))
 
 class Cluster(object):
-    def __init__(self, name, clusters, definition_level='zonal'):
+    def __init__(self, name, definition_level, clusters):
         self.name = name
         self.clusters = clusters
         self.definition_level = definition_level
+        logging.info("Cluster object named %s of level %s" % (name, definition_level))
         
     def get_location(self):
         if self.definition_level == 'zonal':
@@ -434,8 +435,8 @@ class Cluster(object):
         return self.clusters.get_instance_groups_api()
         
     def get_info(self):
-        location_params = self.get_location_params()
-        request = self.get_clusters_api().get(**location_params)
+        location = self.get_location()
+        request = self.get_clusters_api().get(name=location)
         response = request.execute()
         return response
 
@@ -569,10 +570,10 @@ class Clusters(object):
         return {"projectId":self.project_id, "region":self.region}
     
     def get_regional_operations_api(self):
-        return self.service.projects().regions().operations()
+        return self.service.projects().locations().operations()
     
     def get_regional_clusters_api(self):
-        return self.service.projects().regions().clusters()
+        return self.service.projects().locations().clusters()
     
     def get_instance_groups_api(self):
         return self.compute.instanceGroups()
@@ -580,5 +581,5 @@ class Clusters(object):
     def new_cluster_builder(self):
         return ClusterBuilder(self)
     
-    def get_cluster(self, name):
-        return Cluster(name, self)
+    def get_cluster(self, name, definition_level='zonal'):
+        return Cluster(name, definition_level, self)

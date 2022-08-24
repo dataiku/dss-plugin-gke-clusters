@@ -22,6 +22,13 @@
             "mandatory" : true
         },
         {
+            "name": "isRegional",
+            "label": "Regional",
+            "description": "Whether the cluster is regional (if not, it's zonal)",
+            "type": "BOOLEAN",
+            "defaultValue" : false
+        },
+        {
             "name": "userName",
             "label": "User name",
             "description": "If not the same as the gcloud user",
