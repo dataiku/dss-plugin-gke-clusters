@@ -23,7 +23,7 @@ def get_cluster_from_connection_info(config_connection_info, plugin_config_conne
     credentials = None
     if _has_not_blank_property(plugin_config_connection_info, 'credentials'):
         credentials = get_credentials_from_json_or_file(plugin_config_connection_info['credentials'])
-    return Clusters(config_connection_info.get("projectId", None), config_connection_info.get("zone", None), credentials)
+    return Clusters(config_connection_info.get("projectId", None), config_connection_info.get("zone", None), config_connection_info.get("region", None), credentials)
 
 def get_cluster_from_dss_cluster(dss_cluster_id):
     # get the public API client
