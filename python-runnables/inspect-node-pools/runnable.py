@@ -16,6 +16,9 @@ class MyRunnable(Runnable):
     def run(self, progress_callback):
         cluster_data, cluster, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
         
+        if cluster_data.get("cluster", {}).get("autopilot", {}).get("enabled", False):
+            raise Exception("Nodepools aren't accessible on autopilot clusters")
+        
         node_pool_id = self.config.get('nodePoolId', None)
         if node_pool_id is None or len(node_pool_id) == 0:
             node_pools = cluster.get_node_pools() # CRASHES HERE
