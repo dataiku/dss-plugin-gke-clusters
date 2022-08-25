@@ -179,6 +179,8 @@ class ClusterBuilder(object):
         self.node_pools = []
         self.is_regional = False
         self.locations = []
+        self.is_autopilot = False
+        self.release_channel = 'STABLE'
         self.settings_valve = None
        
     def with_name(self, name):
@@ -187,6 +189,11 @@ class ClusterBuilder(object):
     
     def with_version(self, version):
         self.version = version
+        return self
+    
+    def with_autopilot(self, is_autopilot, release_channel):
+        self.is_autopilot = is_autopilot
+        self.release_channel = release_channel
         return self
     
     def with_regional(self, is_regional, locations=[]):
@@ -303,7 +310,7 @@ class ClusterBuilder(object):
             
         need_issue_certificate = False
 
-        if cluster_version == "latest" or cluster_version == "-":
+        if cluster_version is None or cluster_version == "latest" or cluster_version == "-":
             need_issue_certificate = True
         else:
             version_chunks = cluster_version.split('.')
@@ -319,13 +326,17 @@ class ClusterBuilder(object):
                                                                     }
         
         create_cluster_request_body["cluster"]["addonsConfig"] = {}
-        if self.http_load_balancing:
+        if self.http_load_balancing or self.is_autopilot:
             create_cluster_request_body["cluster"]["addonsConfig"]["httpLoadBalancing"] = {"disabled":False}
         else:
             create_cluster_request_body["cluster"]["addonsConfig"]["httpLoadBalancing"] = {"disabled":True}
 
         for node_pool in self.node_pools:
             create_cluster_request_body['cluster']['nodePools'].append(node_pool)
+            
+        if self.is_autopilot:
+            create_cluster_request_body['cluster']['autopilot'] = {"enabled":True}
+            create_cluster_request_body['cluster']['releaseChannel'] = {"channel":self.release_channel}
             
         if not _is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)

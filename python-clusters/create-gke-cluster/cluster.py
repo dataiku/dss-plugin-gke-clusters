@@ -23,37 +23,46 @@ class MyCluster(Cluster):
         # build the create cluster request
         clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])
         
+        is_autopilot = self.config.get("isAutopilot", False)
+        is_regional = is_autopilot or self.config.get('isRegional', False)
+        
         cluster_builder = clusters.new_cluster_builder()
         
         cluster_builder.with_name(self.cluster_name)
-        cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
-        cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
+        if is_autopilot:
+            cluster_builder.with_regional(True, []) # autopilot => regional
+            cluster_builder.with_autopilot(True, self.config.get("releaseChannel", "STABLE"))
+        else:
+            cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
+            cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
         cluster_builder.with_network(self.config.get("inheritFromDSSHost", True),
                                      self.config.get("network", "").strip(),
                                      self.config.get("subNetwork", "").strip())
-        cluster_builder.with_vpc_native_settings(self.config.get("isVpcNative", None),
+        vpc_native = is_autopilot or self.config.get("isVpcNative", None)
+        cluster_builder.with_vpc_native_settings(vpc_native,
                                                  self.config.get("podIpRange", ""),
                                                  self.config.get("svcIpRange", ""))
         cluster_builder.with_labels(self.config.get("clusterLabels", {}))
-        cluster_builder.with_legacy_auth(self.config.get("legacyAuth", False))
-        cluster_builder.with_http_load_balancing(self.config.get("httpLoadBalancing", False))
-        if self.config.get('isRegional', False):
-            cluster_builder.with_regional(True, self.config.get("locations", []))
-        for node_pool in self.config.get('nodePools', []):
-            node_pool_builder = cluster_builder.get_node_pool_builder()
-            node_pool_builder.with_node_count(node_pool.get('numNodes', 3))
-            node_pool_builder.use_gcr_io(node_pool.get('useGcrIo', False))
-            node_pool_builder.with_oauth_scopes(node_pool.get('oauthScopes', None))
-            node_pool_builder.with_machine_type(node_pool.get('machineType', None))
-            node_pool_builder.with_disk_type(node_pool.get('diskType', None))
-            node_pool_builder.with_disk_size_gb(node_pool.get('diskSizeGb', None))
-            node_pool_builder.with_service_account(node_pool.get('serviceAccountType', None),
-                                                   node_pool.get('serviceAccount', None))
-            node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
-            node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
-            node_pool_builder.with_nodepool_labels(node_pool.get('nodepoolLabels', {}))
-            node_pool_builder.with_nodepool_tags(node_pool.get('networkTags', []))
-            node_pool_builder.build()
+        if not is_autopilot:
+            cluster_builder.with_legacy_auth(self.config.get("legacyAuth", False))
+            cluster_builder.with_http_load_balancing(self.config.get("httpLoadBalancing", False))
+            if is_regional:
+                cluster_builder.with_regional(True, self.config.get("locations", []))
+            for node_pool in self.config.get('nodePools', []):
+                node_pool_builder = cluster_builder.get_node_pool_builder()
+                node_pool_builder.with_node_count(node_pool.get('numNodes', 3))
+                node_pool_builder.use_gcr_io(node_pool.get('useGcrIo', False))
+                node_pool_builder.with_oauth_scopes(node_pool.get('oauthScopes', None))
+                node_pool_builder.with_machine_type(node_pool.get('machineType', None))
+                node_pool_builder.with_disk_type(node_pool.get('diskType', None))
+                node_pool_builder.with_disk_size_gb(node_pool.get('diskSizeGb', None))
+                node_pool_builder.with_service_account(node_pool.get('serviceAccountType', None),
+                                                       node_pool.get('serviceAccount', None))
+                node_pool_builder.with_auto_scaling(node_pool.get('numNodesAutoscaling', False), node_pool.get('minNumNodes', 2), node_pool.get('maxNumNodes', 5))
+                node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
+                node_pool_builder.with_nodepool_labels(node_pool.get('nodepoolLabels', {}))
+                node_pool_builder.with_nodepool_tags(node_pool.get('networkTags', []))
+                node_pool_builder.build()
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
         
         start_op = cluster_builder.build()
@@ -64,7 +73,7 @@ class MyCluster(Cluster):
         logging.info("Cluster started")
         
         # cluster is ready, fetch its info from GKE
-        cluster = clusters.get_cluster(self.cluster_name, 'regional' if self.config.get('isRegional', False) else 'zonal')
+        cluster = clusters.get_cluster(self.cluster_name, 'regional' if is_regional else 'zonal')
         cluster_info = cluster.get_info()
         
         # build the config file for kubectl
@@ -79,7 +88,8 @@ class MyCluster(Cluster):
         create_admin_binding(self.config.get("userName", None), kube_config_path)
         
         # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
-        create_installer_daemonset(kube_config_path=kube_config_path) 
+        if not is_autopilot: # GPUs are not supported on autopilot (says the GKE doc)
+            create_installer_daemonset(kube_config_path=kube_config_path) 
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
         overrides = make_overrides(self.config, kube_config, kube_config_path)
@@ -87,7 +97,9 @@ class MyCluster(Cluster):
 
     def stop(self, data):
         clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])  
-        cluster = clusters.get_cluster(self.cluster_name, 'regional' if self.config.get('isRegional', False) else 'zonal')
+        is_autopilot = self.config.get("isAutopilot", False)
+        is_regional = is_autopilot or self.config.get('isRegional', False)
+        cluster = clusters.get_cluster(self.cluster_name, 'regional' if is_regional else 'zonal')
         stop_op = cluster.stop()    
         logging.info("Waiting for cluster stop")
         stop_op.wait_done()
