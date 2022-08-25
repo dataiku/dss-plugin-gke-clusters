@@ -17,20 +17,9 @@ class MyRunnable(Runnable):
         return None
 
     def run(self, progress_callback):
-        cluster_data, clusters, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
+        cluster_data, cluster, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
 
         kube_config_path = dss_cluster_settings.get_raw()['containerSettings']['executionConfigsGenericOverrides']['kubeConfigPath']
-
-        # retrieve the actual name in the cluster's data
-        if cluster_data is None:
-            raise Exception("No cluster data (not started?)")
-        cluster_def = cluster_data.get("cluster", None)
-        if cluster_def is None:
-            raise Exception("No cluster definition (starting failed?)")
-        cluster_name = cluster_def["name"]
-
-        # get the object for the cluster, GKE side
-        cluster = clusters.get_cluster(cluster_name)
 
         node_pool_id = self.config.get('nodePoolId', None)
         node_pools = cluster.get_node_pools()

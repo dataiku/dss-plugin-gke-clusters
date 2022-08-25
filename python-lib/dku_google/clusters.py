@@ -334,9 +334,19 @@ class NodePool(object):
         self.name = name
         self.cluster = cluster
         
+    def get_location_params(self):
+        # the zonal and regional APIs don't have the same args, and notably the zonal API
+        # is a bit braindead in that if has args that are both deprecated and required
+        # despite their replacement arg being possible...
+        if self.cluster.definition_level == 'zonal':
+            location_params = self.cluster.get_location_params()
+            location_params['nodePoolId'] = self.name
+            return location_params
+        else:
+            return {'name':"%s/nodePools/%s" % (self.cluster.get_location(), self.name)}
+        
     def get_info(self):
-        location_params = self.cluster.get_location_params()
-        request = self.cluster.get_node_pools_api().get(nodePoolId=self.name, **location_params)
+        request = self.cluster.get_node_pools_api().get(**self.get_location_params())
         response = request.execute()
         return response
     
@@ -344,9 +354,18 @@ class NodePool(object):
         node_pool_info = self.get_info()
         instance_groups = []
         for instance_group_url in node_pool_info.get("instanceGroupUrls", []):
-            instance_group_name = re.match("^.*/([^/]+)", instance_group_url).group(1)
+            # the zone should be fetched from the url, since regional clusters will have
+            # instance groups in several zones
+            m = re.match("^.*/([^/]+)/[^/]+/([^/]+)", instance_group_url)
+            instance_group_zone = m.group(1)
+            instance_group_name = m.group(2)
             location_params = self.cluster.get_parent_location_params()
-            request = self.cluster.get_instance_groups_api().get(instanceGroup=instance_group_name, **location_params)
+            # the parameter is named 'project' and not 'projectId', hurray for consistency
+            clean_location_params = {'project':location_params.get('projectId', None)}
+            # put the right zone in (might not be the cluster's)
+            clean_location_params["zone"] = instance_group_zone
+            logging.info("get_instance_groups_api %s  %s" % (instance_group_name, str(clean_location_params)))
+            request = self.cluster.get_instance_groups_api().get(instanceGroup=instance_group_name, **clean_location_params)
             instance_groups.append(request.execute())
         return instance_groups
         
@@ -355,8 +374,7 @@ class NodePool(object):
             "nodeCount" : num_nodes
         }
 
-        location_params = self.cluster.get_location_params()
-        request = self.cluster.get_node_pools_api().setSize(nodePoolId=self.name, body=resize_cluster_request_body, **location_params)
+        request = self.cluster.get_node_pools_api().setSize(body=resize_cluster_request_body, **self.get_location_params())
         try:
             response = request.execute()
             return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
@@ -364,8 +382,7 @@ class NodePool(object):
             raise Exception("Failed to resize node pool : %s" % str(e))
         
     def delete(self):
-        location_params = self.cluster.get_location_params()
-        request = self.cluster.get_node_pools_api().delete(nodePoolId=self.name, **location_params)
+        request = self.cluster.get_node_pools_api().delete(**self.get_location_params())
         try:
             response = request.execute()
             return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
@@ -383,8 +400,8 @@ class NodePool(object):
         
         logging.info("Requesting node pool %s" % json.dumps(create_node_pool_request_body, indent=2))
                 
-        location_params = self.cluster.get_location_params()
-        request = self.cluster.get_node_pools_api().create(body=create_node_pool_request_body, **location_params)
+        parent_location = self.cluster.get_location()
+        request = self.cluster.get_node_pools_api().create(body=create_node_pool_request_body, parent=parent_location)
         
         try:
             response = request.execute()
@@ -412,9 +429,12 @@ class Cluster(object):
             return self.clusters.get_regional_location_params()
             
     def get_location_params(self):
-        params = self.get_parent_location_params().copy()
-        params["clusterId"] = self.name
-        return params
+        if self.definition_level == 'zonal':
+            params = self.get_parent_location_params().copy()
+            params["clusterId"] = self.name
+            return params
+        else:
+            return {"name":self.get_location()}
     
     def get_clusters_api(self):
         if self.definition_level == 'zonal':
@@ -435,8 +455,8 @@ class Cluster(object):
         return self.clusters.get_instance_groups_api()
         
     def get_info(self):
-        location = self.get_location()
-        request = self.get_clusters_api().get(name=location)
+        location_params = self.get_location_params()
+        request = self.get_clusters_api().get(**location_params)
         response = request.execute()
         return response
 
@@ -512,6 +532,10 @@ class Cluster(object):
             
     def get_node_pools(self):
         location_params = self.get_location_params()
+        if 'name' in location_params:
+            # for the list() call, the cluster is not the name, but the parent (logically)
+            location_params['parent'] = location_params['name']
+            del location_params['name']
         request = self.get_node_pools_api().list(**location_params)
         
         try:

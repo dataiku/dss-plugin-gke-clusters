@@ -4,7 +4,7 @@ from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
 from dataiku.core.intercom import backend_json_call
 from dku_utils.access import _has_not_blank_property
-import json, logging
+import json, logging, re
 
 def make_overrides(config, kube_config, kube_config_path):
     # alter the spark configurations to put the cluster master and image repo in the properties
@@ -48,6 +48,23 @@ def get_cluster_from_dss_cluster(dss_cluster_id):
     clusters = get_cluster_from_connection_info(dss_cluster_config['config']['connectionInfo'], dss_cluster_config['pluginConfig']['connectionInfo'])
 
     cluster_data = dss_cluster_settings.get_plugin_data()
+    
+    if cluster_data is None:
+        raise Exception("No cluster data (not started?)")
+    cluster_def = cluster_data.get("cluster", None)
+    if cluster_def is None:
+        raise Exception("No cluster definition (starting failed?)")
+    cluster_name = cluster_def["name"]
 
-    return cluster_data, clusters, dss_cluster_settings, dss_cluster_config
+    self_link = cluster_def.get('selfLink', None)
+    if self_link is None:
+        raise Exception("No selflink found, cluster is probably not running")
+    if re.match('https://[^/]+/v1/projects/[^/]+/zones/[^/]+/clusters/[^/]+', self_link):
+        definition_level = 'zonal'
+    else:
+        definition_level = 'regional'
+        
+    cluster = clusters.get_cluster(cluster_name, definition_level)
+
+    return cluster_data, cluster, dss_cluster_settings, dss_cluster_config
     
