@@ -177,6 +177,8 @@ class ClusterBuilder(object):
         self.legacy_auth = False
         self.http_load_balancing = None
         self.node_pools = []
+        self.is_regional = False
+        self.locations = []
         self.settings_valve = None
        
     def with_name(self, name):
@@ -185,6 +187,11 @@ class ClusterBuilder(object):
     
     def with_version(self, version):
         self.version = version
+        return self
+    
+    def with_regional(self, is_regional, locations=[]):
+        self.is_regional = is_regional
+        self.locations = locations
         return self
     
     def with_network(self, is_same_network_as_dss, network, subnetwork):
@@ -265,9 +272,15 @@ class ClusterBuilder(object):
                 "subnetwork": cluster_subnetwork,
                 "resourceLabels": cluster_labels,
                 "nodePools": []
-            },
-            "parent" : self.clusters.get_zonal_location()
+            }
         }
+        if self.is_regional:
+            create_cluster_request_body["parent"] = self.clusters.get_regional_location()
+            if len(self.locations) > 0:
+                create_cluster_request_body["cluster"]["locations"] = self.locations
+        else:
+            create_cluster_request_body["parent"] = self.clusters.get_zonal_location()
+            
         if self.is_vpc_native:
             ip_allocation_policy = {
                 "createSubnetwork": False,
@@ -320,14 +333,24 @@ class ClusterBuilder(object):
                 
         logging.info("Requesting cluster %s" % json.dumps(create_cluster_request_body, indent=2))
                 
-        location_params = self.clusters.get_zonal_location_params()
-        request = self.clusters.get_zonal_clusters_api().create(body=create_cluster_request_body, **location_params)
-        
-        try:
-            response = request.execute()
-            return Operation(response, self.clusters.get_zonal_operations_api(), self.clusters.get_zonal_location_params())
-        except HttpError as e:
-            raise Exception("Failed to create cluster : %s" % str(e))
+        if self.is_regional:
+            location_params = {"parent" : self.clusters.get_regional_location()}
+            request = self.clusters.get_regional_clusters_api().create(body=create_cluster_request_body, **location_params)
+
+            try:
+                response = request.execute()
+                return Operation(response, self.clusters.get_regional_operations_api(), self.clusters.get_regional_location_params())
+            except HttpError as e:
+                raise Exception("Failed to create cluster : %s" % str(e))
+        else:
+            location_params = self.clusters.get_zonal_location_params()
+            request = self.clusters.get_zonal_clusters_api().create(body=create_cluster_request_body, **location_params)
+
+            try:
+                response = request.execute()
+                return Operation(response, self.clusters.get_zonal_operations_api(), self.clusters.get_zonal_location_params())
+            except HttpError as e:
+                raise Exception("Failed to create cluster : %s" % str(e))
     
 class NodePool(object):
     def __init__(self, name, cluster):
@@ -400,8 +423,11 @@ class NodePool(object):
         
         logging.info("Requesting node pool %s" % json.dumps(create_node_pool_request_body, indent=2))
                 
-        parent_location = self.cluster.get_location()
-        request = self.cluster.get_node_pools_api().create(body=create_node_pool_request_body, parent=parent_location)
+        parent_location_params = self.cluster.get_location_params()
+        # it's a creation, so the locations are passed as 'parent' and not 'name' (for regional clusters)
+        if 'name' in parent_location_params:
+            parent_location_params = {'parent':parent_location_params['name']}
+        request = self.cluster.get_node_pools_api().create(body=create_node_pool_request_body, **parent_location_params)
         
         try:
             response = request.execute()
@@ -526,7 +552,7 @@ class Cluster(object):
         
         try:
             response = request.execute()
-            return Operation(response, self.get_operations_api(), self.get_location_params())
+            return Operation(response, self.get_operations_api(), self.get_parent_location_params())
         except HttpError as e:
             raise Exception("Failed to stop cluster : %s" % str(e))
             

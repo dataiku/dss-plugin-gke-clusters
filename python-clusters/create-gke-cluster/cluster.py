@@ -37,6 +37,8 @@ class MyCluster(Cluster):
         cluster_builder.with_labels(self.config.get("clusterLabels", {}))
         cluster_builder.with_legacy_auth(self.config.get("legacyAuth", False))
         cluster_builder.with_http_load_balancing(self.config.get("httpLoadBalancing", False))
+        if self.config.get('isRegional', False):
+            cluster_builder.with_regional(True, self.config.get("locations", []))
         for node_pool in self.config.get('nodePools', []):
             node_pool_builder = cluster_builder.get_node_pool_builder()
             node_pool_builder.with_node_count(node_pool.get('numNodes', 3))
@@ -62,7 +64,7 @@ class MyCluster(Cluster):
         logging.info("Cluster started")
         
         # cluster is ready, fetch its info from GKE
-        cluster = clusters.get_cluster(self.cluster_name)
+        cluster = clusters.get_cluster(self.cluster_name, 'regional' if self.config.get('isRegional', False) else 'zonal')
         cluster_info = cluster.get_info()
         
         # build the config file for kubectl
@@ -85,7 +87,7 @@ class MyCluster(Cluster):
 
     def stop(self, data):
         clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])  
-        cluster = clusters.get_cluster(self.cluster_name)
+        cluster = clusters.get_cluster(self.cluster_name, 'regional' if self.config.get('isRegional', False) else 'zonal')
         stop_op = cluster.stop()    
         logging.info("Waiting for cluster stop")
         stop_op.wait_done()

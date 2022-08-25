@@ -25,6 +25,21 @@
             "defaultValue": "latest"
         },
         {
+            "name": "isRegional",
+            "label": "Regional",
+            "description": "Whether the cluster is regional (if not, it's zonal)",
+            "type": "BOOLEAN",
+            "defaultValue" : false
+        },
+        {
+            "name": "locations",
+            "label": "Locations",
+            "description": "Zones in which nodepools are created (if empty, all zones of the region)",
+            "type": "STRINGS",
+            "mandatory": false,
+            "visibilityCondition": "model.isRegional"
+        },
+        {
             "name": "s-network",
             "type": "SEPARATOR",
             "label": "Networking",
