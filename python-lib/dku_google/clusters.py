@@ -604,7 +604,7 @@ class Clusters(object):
         else:
             self.zone = zone
         if _is_none_or_blank(region):
-            default_region = self.zone.split("-")[:-1]
+            default_region = '-'.join(self.zone.split("-")[:-1])
             logging.info("No region specified, using {} as default".format(default_region))
             self.region = default_region
         else:
