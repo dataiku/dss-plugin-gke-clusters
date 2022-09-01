@@ -22,7 +22,36 @@
             "name": "clusterVersion",
             "label": "Kubernetes version",
             "type": "STRING",
-            "defaultValue": "latest"
+            "defaultValue": "latest",
+            "visibilityCondition": "!model.isAutopilot"
+        },
+        {
+            "name": "releaseChannel",
+            "label": "Release Channel",
+            "type": "SELECT",
+            "defaultValue": "STABLE",
+            "selectChoices": [
+                {"label":"Stable", "value":"STABLE"},
+                {"label":"Regular", "value":"REGULAR"},
+                {"label":"Rapid", "value":"RAPID"}
+            ],
+            "visibilityCondition": "model.isAutopilot"
+        },
+        {
+            "name": "isRegional",
+            "label": "Regional",
+            "description": "Whether the cluster is regional (if not, it's zonal)",
+            "type": "BOOLEAN",
+            "defaultValue" : false,
+            "visibilityCondition": "!model.isAutopilot"
+        },
+        {
+            "name": "locations",
+            "label": "Locations",
+            "description": "Zones in which nodepools are created (if empty, all zones of the region)",
+            "type": "STRINGS",
+            "mandatory": false,
+            "visibilityCondition": "!model.isAutopilot && model.isRegional"
         },
         {
             "name": "s-network",
@@ -58,7 +87,8 @@
             "label": "Make cluster VPC-native",
             "description": "Allocate pod/service IPs directly from GCP network (RECOMMENDED)",
             "type": "BOOLEAN",
-            "defaultValue": true
+            "defaultValue": true,
+            "visibilityCondition": "!model.isAutopilot"
         },
         {
             "name": "podIpRange",
@@ -79,7 +109,8 @@
         {
             "name": "s-nodes",
             "type":"SEPARATOR",
-            "label": "Cluster nodes"
+            "label": "Cluster nodes",
+            "visibilityCondition": "!model.isAutopilot"
         },
         {
             "name": "nodePools",
@@ -87,11 +118,19 @@
             "description": "Node pools to create in the cluster",
             "type": "PRESETS",
             "parameterSetId": "node-pool-request",
-            "mandatory": true
+            "mandatory": true,
+            "visibilityCondition": "!model.isAutopilot"
         },
          {
             "type":"SEPARATOR",
             "label": "Advanced options"
+        },
+        {
+            "name": "isAutopilot",
+            "label": "Autopilot",
+            "description": "Create a cluster with node pools managed by GKE",
+            "type": "BOOLEAN",
+            "defaultValue" : false
         },
         {
             "name": "clusterLabels",
@@ -104,14 +143,16 @@
             "label": "HTTP load balancing",
             "description": "Enable interaction with Google Cloud's load balancing abilities",
             "type": "BOOLEAN",
-            "defaultValue": true
+            "defaultValue": true,
+            "visibilityCondition": "!model.isAutopilot"
         },
         {
             "name": "legacyAuth",
             "label": "Legacy auth",
             "description": "Use client certificate instead of GCP auth provider",
             "type": "BOOLEAN",
-            "defaultValue": false
+            "defaultValue": false,
+            "visibilityCondition": "!model.isAutopilot"
         },
         {
             "name": "creationSettingsValve",

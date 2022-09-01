@@ -23,6 +23,13 @@
             "type": "STRING",
             "description": "If empty, uses what was set by gcloud auth application-default login",
             "mandatory" : false
+        },
+        {
+            "name": "region",
+            "label": "GCP Region",
+            "type": "STRING",
+            "description": "If empty, inferred from zone",
+            "mandatory" : false
         }
     ]
 }

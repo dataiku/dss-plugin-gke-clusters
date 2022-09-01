@@ -71,7 +71,7 @@ def get_instance_info():
                         headers=metadata_flavor).text
     zone = zone_full.split("/")[-1] 
     instance_info["zone"] = zone
-    instance_info["region"] = zone.split("-")[:-1]
+    instance_info["region"] = '-'.join(zone.split("-")[:-1])
     instance_info["vm_name"] = requests.get("/".join([METADATA_SERVER_BASE_URL,
                                                       "instance",
                                                       "name"]),
