@@ -1,9 +1,10 @@
 # Changelog
 
-##  Next version
+##  Version 1.1.5 - Feature and bugfix release
 - Fix action "Add node pool"
 - Change default value for "Inherit DSS host settings" when creating a cluster
 - Change default value for "Service account type" in the nodes pool creation form
+- Handle autopilot clusters
 
 ## Version 1.1.4 - Feature release
 - Add ability to use named secondary ranges
