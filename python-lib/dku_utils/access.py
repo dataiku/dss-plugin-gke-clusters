@@ -1,5 +1,6 @@
 from six import text_type
 from collections import Mapping, Iterable
+import sys
 
 def _get_in_object_or_array(o, chunk, d):
     if isinstance(chunk, int):
@@ -34,6 +35,12 @@ def _default_if_property_blank(d, k, v):
     x = d[k]
     return _default_if_blank(x, v)
 
+def check_type_for_string(a, b):
+    if sys.version_info < (3, 0):
+        return (isinstance(a, str) or isinstance(a, unicode)) and (isinstance(b, str) or isinstance(b, unicode))
+    else:
+        return isinstance(a, str) and isinstance(b, str)
+
 def _merge_objects(a, b):
     if isinstance(a, Mapping) and isinstance(b, Mapping):
         r = {}
@@ -46,7 +53,7 @@ def _merge_objects(a, b):
             else:
                 r[k] = a[k]
         return r
-    elif isinstance(a, str) and isinstance(b, str):
+    elif check_type_for_string(a, b):
         return b
     elif isinstance(a, Iterable) and isinstance(b, Iterable):
         ret = []
