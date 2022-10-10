@@ -1,5 +1,11 @@
 from six import text_type
 from collections import Mapping, Iterable
+import sys
+
+if sys.version_info > (3,):
+    dku_basestring_type = str
+else:
+    dku_basestring_type = basestring
 
 def _get_in_object_or_array(o, chunk, d):
     if isinstance(chunk, int):
@@ -12,7 +18,7 @@ def _get_in_object_or_array(o, chunk, d):
 
 def _safe_get_value(o, chunks, default_value=None):
     if len(chunks) == 1:
-        return _get_in_object_or_array(o, chunks[0], default_value) 
+        return _get_in_object_or_array(o, chunks[0], default_value)
     else:
         return _safe_get_value(_get_in_object_or_array(o, chunks[0], {}), chunks[1:], default_value)
 
@@ -21,13 +27,13 @@ def _is_none_or_blank(x):
 
 def _has_not_blank_property(d, k):
     return k in d and not _is_none_or_blank(d[k])
-    
+
 def _default_if_blank(x, d):
     if _is_none_or_blank(x):
         return d
     else:
         return x
-    
+
 def _default_if_property_blank(d, k, v):
     if not k in d:
         return v
@@ -46,16 +52,16 @@ def _merge_objects(a, b):
             else:
                 r[k] = a[k]
         return r
+    elif isinstance(a, dku_basestring_type) and isinstance(b, dku_basestring_type):
+        return b
     elif isinstance(a, Iterable) and isinstance(b, Iterable):
         ret = []
         for x in a:
             ret.append(x)
         for x in b:
-            ret.append(x)       
+            ret.append(x)
         return ret
     elif b is not None:
         return b
     else:
         return a
-    
-    
