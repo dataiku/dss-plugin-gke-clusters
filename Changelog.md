@@ -1,7 +1,7 @@
 # Changelog
 
 ## Next version
-- Fix the merging mechanism for custom string parameters in cluster configurations
+- Fix the cluster configuration's merging mechanism for string parameters
 
 ##  Version 1.1.5 - Feature and bugfix release
 - Fix action "Add node pool"
