@@ -1,5 +1,8 @@
 # Changelog
 
+## Next version
+- Fix the merging mechanism for custom string parameters in cluster configurations
+
 ##  Version 1.1.5 - Feature and bugfix release
 - Fix action "Add node pool"
 - Change default value for "Inherit DSS host settings" when creating a cluster
