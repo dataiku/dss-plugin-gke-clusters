@@ -497,66 +497,6 @@ class Cluster(object):
         response = request.execute()
         return response
 
-    def get_kube_config(self, cluster_id=None):
-        response = self.get_info()
-        
-        if _is_none_or_blank(cluster_id):
-            cluster_id = self.name
-            
-        logging.info("Response=%s" % json.dumps(response, indent=2))
-            
-        legacy_auth = response.get("legacyAbac", {}).get("enabled", False)
-        master_auth = response["masterAuth"]
-        endpoint = response["endpoint"]
-        
-        user = {
-            "name": "user-%s" % cluster_id,
-            "user": {}
-        }
-        if legacy_auth:
-            user["user"] = {
-                                "client-certificate-data": master_auth["clientCertificate"],
-                                "client-key-data": master_auth["clientKey"]
-                            }
-        else:
-            user["user"] = {
-                                "auth-provider": {
-                                    "name": "gcp",
-                                    "config": {
-                                        "cmd-args": "config config-helper --format=json",
-                                        "cmd-path" : os.path.join(get_sdk_root(), "bin", "gcloud"),
-                                        "expiry-key": "{.credential.token_expiry}",
-                                        "token-key": "{.credential.access_token}"
-                                    }
-                                }
-                            }
-        
-        cluster = {
-            "name": "cluster-%s" % cluster_id,
-            "cluster": {
-                "certificate-authority-data": master_auth["clusterCaCertificate"],
-                "server": "https://%s" % endpoint
-            }
-        }
-        context = {
-            "name": "context-%s" % cluster_id,
-            "context": {
-                "cluster": cluster["name"],
-                "user": user["name"]
-            }
-        }
-        
-        config = {
-            "apiVersion": "v1",
-            "kind": "Config",
-            "preferences":{},
-            "clusters": [cluster],
-            "contexts": [context],
-            "users": [user],
-            "current-context": context["name"]
-        }
-        return config
-    
     def stop(self):
         location_params = self.get_location_params()
         request = self.get_clusters_api().delete(**location_params)

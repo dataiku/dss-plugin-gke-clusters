@@ -1,12 +1,16 @@
 from dku_utils.access import _default_if_blank, _default_if_property_blank
 import dataiku
+import yaml
 from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
 from dataiku.core.intercom import backend_json_call
 from dku_utils.access import _has_not_blank_property
 import json, logging, re
 
-def make_overrides(config, kube_config, kube_config_path):
+def make_overrides(kube_config_path):
+    with open(kube_config_path, "r") as f:
+        kube_config = yaml.safe_load(f)
+    
     # alter the spark configurations to put the cluster master and image repo in the properties
     container_settings = {
                             'executionConfigsGenericOverrides': {
