@@ -27,7 +27,7 @@ class MyCluster(Cluster):
         cluster = clusters.get_cluster(self.config.get('clusterId', self.cluster_name), 'regional' if is_regional else 'zonal')
         cluster_info = cluster.get_info()
 
-        # delegate the creation of the kube config file to gke-gcloud-auth-plugin
+        # delegate the creation of the kube config file to gcloud to use the client go auth plugin
         kube_config_path = os.path.join(os.getcwd(), 'kube_config')
         create_kube_config_file(cluster.name, is_regional, kube_config_path)
                 
