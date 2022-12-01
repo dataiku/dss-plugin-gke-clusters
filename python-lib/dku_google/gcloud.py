@@ -128,7 +128,7 @@ def create_kube_config_file(cluster_id, is_cluster_regional, kube_config_path):
     The gke-gcloud-auth-plugin is installed on the machine directly from the image
     It will keep an authentication token linked to the unix user on the machine for gcloud and kubectl calls
     Command `gcloud container clusters get-credentials CLUSTER_NAME` configures the authentication
-        for the specified cluster
+        for the specified cluster, and creates an adequate kubeconfig file.
     """
 
     # Deleting the kube config for this cluster if it already exists

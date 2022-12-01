@@ -34,6 +34,13 @@
             "description": "If not the same as the gcloud user",
             "type": "STRING",
             "mandatory" : false
+        },
+        {
+            "name": "legacyAuth",
+            "label": "Legacy auth",
+            "description": "Use client certificate instead of GCP auth provider",
+            "type": "BOOLEAN",
+            "defaultValue" : false
         }
     ]
 }
