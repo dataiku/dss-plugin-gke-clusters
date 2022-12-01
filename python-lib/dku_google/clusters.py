@@ -304,7 +304,7 @@ class ClusterBuilder(object):
                 # assume it's an existing range name (shared VPC case)
                 ip_allocation_policy["clusterSecondaryRangeName"] = cluster_pod_ip_range
             create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
-        
+
         if self.legacy_auth:
             create_cluster_request_body["cluster"]["legacyAbac"] = {"enabled":True}
             
