@@ -174,7 +174,6 @@ class ClusterBuilder(object):
         self.is_vpc_native = None
         self.pod_ip_range = None
         self.svc_ip_range = None
-        self.legacy_auth = False
         self.http_load_balancing = None
         self.node_pools = []
         self.is_regional = False
@@ -240,10 +239,6 @@ class ClusterBuilder(object):
             self.svc_ip_range = svc_ip_range
         return self
     
-    def with_legacy_auth(self, legacy_auth):
-        self.legacy_auth = legacy_auth
-        return self
-    
     def with_http_load_balancing(self, http_load_balancing):
         self.http_load_balancing = http_load_balancing
         return self
@@ -304,9 +299,6 @@ class ClusterBuilder(object):
                 # assume it's an existing range name (shared VPC case)
                 ip_allocation_policy["clusterSecondaryRangeName"] = cluster_pod_ip_range
             create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
-
-        if self.legacy_auth:
-            create_cluster_request_body["cluster"]["legacyAbac"] = {"enabled":True}
             
         need_issue_certificate = False
 
@@ -504,33 +496,24 @@ class Cluster(object):
             cluster_id = self.name
             
         logging.info("Response=%s" % json.dumps(response, indent=2))
-            
-        legacy_auth = response.get("legacyAbac", {}).get("enabled", False)
+
         master_auth = response["masterAuth"]
         endpoint = response["endpoint"]
         
         user = {
             "name": "user-%s" % cluster_id,
-            "user": {}
+            "user": {
+                "auth-provider": {
+                    "name": "gcp",
+                    "config": {
+                        "cmd-args": "config config-helper --format=json",
+                        "cmd-path" : os.path.join(get_sdk_root(), "bin", "gcloud"),
+                        "expiry-key": "{.credential.token_expiry}",
+                        "token-key": "{.credential.access_token}"
+                    }
+                }
+            }
         }
-        if legacy_auth:
-            user["user"] = {
-                                "client-certificate-data": master_auth["clientCertificate"],
-                                "client-key-data": master_auth["clientKey"]
-                            }
-        else:
-            user["user"] = {
-                                "auth-provider": {
-                                    "name": "gcp",
-                                    "config": {
-                                        "cmd-args": "config config-helper --format=json",
-                                        "cmd-path" : os.path.join(get_sdk_root(), "bin", "gcloud"),
-                                        "expiry-key": "{.credential.token_expiry}",
-                                        "token-key": "{.credential.access_token}"
-                                    }
-                                }
-                            }
-        
         cluster = {
             "name": "cluster-%s" % cluster_id,
             "cluster": {
