@@ -1,9 +1,10 @@
+import ipaddress, json, os, re, socket, traceback
+
 from dataiku.runnables import Runnable
-import os, sys, json, yaml, random, subprocess, socket, re, traceback, ipaddress
-from six import text_type
 from dku_kube.busybox_pod import BusyboxPod
 from dku_kube.kubectl_command import KubeCommandException
 from dku_utils.cluster import get_cluster_from_dss_cluster
+from six import text_type
 
 class MyRunnable(Runnable):
 

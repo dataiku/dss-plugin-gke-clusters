@@ -1,16 +1,10 @@
-import os, sys, json, subprocess, time, logging, yaml
+import logging, os
 from dataiku.cluster import Cluster
 
-
-
-from dku_google.auth import get_credentials_from_json_or_file
-from dku_google.clusters import Clusters
 from dku_google.gcloud import create_kube_config_file
-from dku_kube.kubeconfig import merge_or_write_config
-from dku_kube.role import create_admin_binding
 from dku_kube.nvidia_utils import create_installer_daemonset
-from dku_utils.cluster import make_overrides, get_cluster_from_connection_info
-from dku_utils.access import _has_not_blank_property
+from dku_kube.role import create_admin_binding
+from dku_utils.cluster import get_cluster_from_connection_info, make_overrides
 
 class MyCluster(Cluster):
     def __init__(self, cluster_id, cluster_name, config, plugin_config, global_settings):

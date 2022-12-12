@@ -1,8 +1,4 @@
-from googleapiclient import discovery
-from googleapiclient.errors import HttpError
-
-import os, sys, json, time
-import logging
+import time
 
 class Operation(object):
     def __init__(self, operation, operations, location_data):

@@ -1,6 +1,7 @@
-from six import text_type
-from collections import Mapping, Iterable
 import sys
+
+from collections import Iterable, Mapping
+from six import text_type
 
 if sys.version_info > (3,):
     dku_basestring_type = str
@@ -22,31 +23,25 @@ def _safe_get_value(o, chunks, default_value=None):
     else:
         return _safe_get_value(_get_in_object_or_array(o, chunks[0], {}), chunks[1:], default_value)
 
-def _is_none_or_blank(x):
+def is_none_or_blank(x):
     return x is None or (isinstance(x, text_type) and len(x.strip()) == 0)
 
-def _has_not_blank_property(d, k):
-    return k in d and not _is_none_or_blank(d[k])
+def has_not_blank_property(d, k):
+    return k in d and not is_none_or_blank(d[k])
 
-def _default_if_blank(x, d):
-    if _is_none_or_blank(x):
+def default_if_blank(x, d):
+    if is_none_or_blank(x):
         return d
     else:
         return x
 
-def _default_if_property_blank(d, k, v):
-    if not k in d:
-        return v
-    x = d[k]
-    return _default_if_blank(x, v)
-
-def _merge_objects(a, b):
+def merge_objects(a, b):
     if isinstance(a, Mapping) and isinstance(b, Mapping):
         r = {}
         ks = set(a.keys()).union(set(b.keys()))
         for k in ks:
             if k in b and k in a:
-                r[k] = _merge_objects(a[k], b[k])
+                r[k] = merge_objects(a[k], b[k])
             elif k in b:
                 r[k] = b[k]
             else:

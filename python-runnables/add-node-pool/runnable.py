@@ -1,11 +1,8 @@
-import dataiku
-import json, logging, os
-from dku_google.clusters import Clusters
-from dku_utils.cluster import get_cluster_from_dss_cluster
-from dku_kube.nvidia_utils import create_installer_daemonset
+import json, logging
+
 from dataiku.runnables import Runnable
-
-
+from dku_kube.nvidia_utils import create_installer_daemonset
+from dku_utils.cluster import get_cluster_from_dss_cluster
 
 class MyRunnable(Runnable):
     def __init__(self, project_key, config, plugin_config):
@@ -17,7 +14,7 @@ class MyRunnable(Runnable):
         return None
 
     def run(self, progress_callback):
-        cluster_data, cluster, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
+        cluster_data, cluster, dss_cluster_settings, _ = get_cluster_from_dss_cluster(self.config['clusterId'])
         
         if cluster_data.get("cluster", {}).get("autopilot", {}).get("enabled", False):
             raise Exception("Nodepools aren't accessible on autopilot clusters")
@@ -58,6 +55,5 @@ class MyRunnable(Runnable):
 
         # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
         create_installer_daemonset(kube_config_path=kube_config_path)
-
 
         return '<pre class="debug">%s</pre>' % json.dumps(node_pool.get_info(), indent=2)

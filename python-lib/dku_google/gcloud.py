@@ -1,11 +1,9 @@
-import os, sys, json, yaml, subprocess, logging
-import socket
-import requests
+import json, logging, os, requests, subprocess
 
 from dku_utils.access import _safe_get_value
 
 GCLOUD_INFO = None
-METADATA_SERVER_BASE_URL="http://metadata/computeMetadata/v1/"
+METADATA_SERVER_BASE_URL = "http://metadata/computeMetadata/v1/"
 
 def _get_gcloud_info():
     global GCLOUD_INFO
@@ -18,27 +16,9 @@ def _get_gcloud_info():
             raise ValueError("gcloud CLI not found, check if Google Cloud SDK is properly installed and configured.")
     return GCLOUD_INFO
 
-
-def get_sdk_root():
-    sdk_root = _safe_get_value(_get_gcloud_info(), ["installation", "sdk_root"], None)
-    return sdk_root
-
-
-def get_access_token_and_expiry(config={}):
-    logging.info("Retrieving gcloud access token and expiry")
-    cmd_path = config.get("cmd-path", os.path.join(get_sdk_root(), "bin", "gcloud"))
-    cmd_args = config.get("cmd-args", "config config-helper --format=json")
-    info_str = subprocess.check_output("%s %s" % (cmd_path, cmd_args), shell=True)
-    info = json.loads(info_str)
-    token_key_chunks = config.get("token-key", "{.credential.access_token}")[2:-1].split('.')
-    expiry_key_chunks = config.get("expiry-key", "{.credential.token_expiry}")[2:-1].split('.')
-    return _safe_get_value(info, token_key_chunks), _safe_get_value(info, expiry_key_chunks)
-
-
 def get_account():
     account = _safe_get_value(_get_gcloud_info(), ["config", "account"], None)
     return account
-
 
 def _run_cmd(cmd=None, **kwargs):
     """
@@ -52,7 +32,6 @@ def _run_cmd(cmd=None, **kwargs):
     except subprocess.CalledProcessError as e:
         logging.error(e.output)
     return
-
 
 def get_instance_info():
     """
@@ -79,7 +58,6 @@ def get_instance_info():
                                             headers=metadata_flavor).text
     return instance_info
 
-
 def get_instance_network():
     """
     Retrieve the network and subnetwork of the DSS host.
@@ -104,7 +82,6 @@ def get_instance_network():
     subnetwork = default_nic["subnetwork"]
     return network, subnetwork
 
-
 def get_instance_service_account():
     """
     Retrieve the active service account of the DSS host
@@ -118,7 +95,6 @@ def get_instance_service_account():
             instance_active_sa = identity["account"]
     logging.info("Active service account on DSS host is {}".format(instance_active_sa))
     return instance_active_sa
-
 
 def create_kube_config_file(cluster_id, is_cluster_regional, kube_config_path):
     """

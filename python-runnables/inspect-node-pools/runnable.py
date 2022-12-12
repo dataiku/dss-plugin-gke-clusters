@@ -1,7 +1,6 @@
+import json
+
 from dataiku.runnables import Runnable
-import dataiku
-import json, logging
-from dku_google.clusters import Clusters
 from dku_utils.cluster import get_cluster_from_dss_cluster
 
 class MyRunnable(Runnable):
@@ -14,7 +13,7 @@ class MyRunnable(Runnable):
         return None
 
     def run(self, progress_callback):
-        cluster_data, cluster, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
+        cluster_data, cluster, _, _ = get_cluster_from_dss_cluster(self.config['clusterId'])
         
         if cluster_data.get("cluster", {}).get("autopilot", {}).get("enabled", False):
             raise Exception("Nodepools aren't accessible on autopilot clusters")

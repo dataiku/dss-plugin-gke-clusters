@@ -1,4 +1,4 @@
-import os, sys, json, yaml, logging, subprocess, time
+import subprocess, time
 
 class KubeCommandException(Exception):
     def __init__(self, message, out, err):
@@ -27,5 +27,3 @@ def run_with_timeout(cmd, env=None, timeout=3, nokill=False):
     if rv != 0:
         raise KubeCommandException("Command failed with %s" % rv, out, err)
     return out, err
-
-

@@ -1,14 +1,12 @@
-from googleapiclient import discovery
-from six import text_type
-from googleapiclient.errors import HttpError
-from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_instance_info
-from dku_google.gcloud import get_instance_network, get_instance_service_account
-from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
-
-import os, sys, json, re
-import logging
+import json, logging, re
 
 from .operations import Operation
+
+from dku_google.gcloud import get_instance_info, get_instance_network, get_instance_service_account
+from dku_utils.access import default_if_blank, is_none_or_blank, merge_objects
+from googleapiclient import discovery
+from googleapiclient.errors import HttpError
+from six import text_type
 
 class NodePoolBuilder(object):
     def __init__(self, cluster_builder):
@@ -58,7 +56,7 @@ class NodePoolBuilder(object):
             return self.with_oauth_scopes(oauth_scopes.split(','))
         if oauth_scopes is not None:
             for oauth_scope in oauth_scopes:
-                if _is_none_or_blank(oauth_scope):
+                if is_none_or_blank(oauth_scope):
                     continue
                 self.add_oauth_scope(oauth_scope.strip())
         return self
@@ -85,7 +83,7 @@ class NodePoolBuilder(object):
             logging.info("Custer nodes will inherit the DSS host Service Account")
             self.service_account = get_instance_service_account()
         if service_account_type == "custom":
-            if _is_none_or_blank(custom_service_account_name):
+            if is_none_or_blank(custom_service_account_name):
                 logging.info("Cluster nodes will have the default Compute Engine Service Account")
                 self.service_account = ""
             else:
@@ -94,7 +92,7 @@ class NodePoolBuilder(object):
         return self
     
     def with_settings_valve(self, settings_valve):
-        self.settings_valve = _default_if_blank(settings_valve, None)
+        self.settings_valve = default_if_blank(settings_valve, None)
         return self
 
     def with_gpu(self, enable_gpu, gpu_type, gpu_count):
@@ -134,7 +132,7 @@ class NodePoolBuilder(object):
             node_pool['config']['diskSizeGb'] = self.disk_size_gb
         node_pool['config']['oauthScopes'] = self.oauth_scopes
         
-        if not _is_none_or_blank(self.service_account):
+        if not is_none_or_blank(self.service_account):
             node_pool['config']['serviceAccount'] = self.service_account
             
         node_pool["management"] = {
@@ -150,9 +148,9 @@ class NodePoolBuilder(object):
         node_pool["config"]["labels"] = self.nodepool_labels
         node_pool["config"]["tags"] = self.nodepool_tags
             
-        if not _is_none_or_blank(self.settings_valve):
+        if not is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
-            node_pool = _merge_objects(node_pool, valve)
+            node_pool = merge_objects(node_pool, valve)
 
         if isinstance(self.cluster_builder, ClusterBuilder):
             self.cluster_builder.with_node_pool(node_pool)
@@ -208,8 +206,8 @@ class ClusterBuilder(object):
             self.network, self.subnetwork = get_instance_network()
         else:
             logging.info("Cluster network/subnetwork is set EXPLICITLY")
-            self.network = _default_if_blank(network, None)
-            self.subnetwork = _default_if_blank(subnetwork, None)
+            self.network = default_if_blank(network, None)
+            self.subnetwork = default_if_blank(subnetwork, None)
         logging.info("Cluster network is {}".format(self.network))
         logging.info("Cluster subnetwork is {}".format(self.subnetwork))
         return self
@@ -249,7 +247,7 @@ class ClusterBuilder(object):
         return self
 
     def with_settings_valve(self, settings_valve):
-        self.settings_valve = _default_if_blank(settings_valve, None)
+        self.settings_valve = default_if_blank(settings_valve, None)
         return self
 
     def _auto_name(self):
@@ -265,7 +263,7 @@ class ClusterBuilder(object):
         cluster_pod_ip_range = self.pod_ip_range
         cluster_svc_ip_range = self.svc_ip_range
         
-        if _is_none_or_blank(cluster_name):
+        if is_none_or_blank(cluster_name):
             cluster_name = self._auto_name()
         if cluster_node_count is None:
             cluster_node_count = 3
@@ -338,9 +336,9 @@ class ClusterBuilder(object):
             create_cluster_request_body['cluster']['autopilot'] = {"enabled":True}
             create_cluster_request_body['cluster']['releaseChannel'] = {"channel":self.release_channel}
             
-        if not _is_none_or_blank(self.settings_valve):
+        if not is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
-            create_cluster_request_body["cluster"] = _merge_objects(create_cluster_request_body["cluster"], valve)
+            create_cluster_request_body["cluster"] = merge_objects(create_cluster_request_body["cluster"], valve)
                 
         logging.info("Requesting cluster %s" % json.dumps(create_cluster_request_body, indent=2))
                 
@@ -531,19 +529,19 @@ class Clusters(object):
     def __init__(self, project_id, zone, region, credentials=None):
         logging.info("Connect using project_id=%s zone=%s region=%s credentials=%s" % (project_id, zone, region, credentials))
         instance_info = get_instance_info()
-        if _is_none_or_blank(project_id):
+        if is_none_or_blank(project_id):
             default_project = instance_info["project"]
             logging.info("No project specified, using {} as default".format(default_project))
             self.project_id = default_project
         else:
             self.project_id = project_id
-        if _is_none_or_blank(zone):
+        if is_none_or_blank(zone):
             default_zone = instance_info["zone"]
             logging.info("No zone specified, using {} as default".format(default_zone))
             self.zone = default_zone
         else:
             self.zone = zone
-        if _is_none_or_blank(region):
+        if is_none_or_blank(region):
             default_region = '-'.join(self.zone.split("-")[:-1])
             logging.info("No region specified, using {} as default".format(default_region))
             self.region = default_region

@@ -1,11 +1,11 @@
-from dku_utils.access import _default_if_blank, _default_if_property_blank
+import json, logging, re, yaml
+
 import dataiku
-import yaml
+
+from dataiku.core.intercom import backend_json_call
 from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
-from dataiku.core.intercom import backend_json_call
-from dku_utils.access import _has_not_blank_property
-import json, logging, re
+from dku_utils.access import has_not_blank_property
 
 def make_overrides(kube_config_path):
     with open(kube_config_path, "r") as f:
@@ -25,7 +25,7 @@ def make_overrides(kube_config_path):
 
 def get_cluster_from_connection_info(config_connection_info, plugin_config_connection_info):
     credentials = None
-    if _has_not_blank_property(plugin_config_connection_info, 'credentials'):
+    if has_not_blank_property(plugin_config_connection_info, 'credentials'):
         credentials = get_credentials_from_json_or_file(plugin_config_connection_info['credentials'])
     return Clusters(config_connection_info.get("projectId", None), config_connection_info.get("zone", None), config_connection_info.get("region", None), credentials)
 
@@ -71,4 +71,3 @@ def get_cluster_from_dss_cluster(dss_cluster_id):
     cluster = clusters.get_cluster(cluster_name, definition_level)
 
     return cluster_data, cluster, dss_cluster_settings, dss_cluster_config
-    
