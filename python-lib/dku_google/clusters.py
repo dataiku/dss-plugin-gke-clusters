@@ -307,23 +307,6 @@ class ClusterBuilder(object):
 
         if self.legacy_auth:
             create_cluster_request_body["cluster"]["legacyAbac"] = {"enabled":True}
-            
-        need_issue_certificate = False
-
-        if cluster_version is None or cluster_version == "latest" or cluster_version == "-":
-            need_issue_certificate = True
-        else:
-            version_chunks = cluster_version.split('.')
-            major_version = int(version_chunks[0])
-            minor_version = int(version_chunks[1])
-            need_issue_certificate = major_version > 1 or (major_version == 1 and minor_version >= 12)
-                
-        if need_issue_certificate:
-            create_cluster_request_body["cluster"]["masterAuth"] = {
-                                                                        "clientCertificateConfig" : {
-                                                                            "issueClientCertificate" : True
-                                                                        }
-                                                                    }
         
         create_cluster_request_body["cluster"]["addonsConfig"] = {}
         if self.http_load_balancing or self.is_autopilot:
