@@ -31,7 +31,7 @@ class MyCluster(Cluster):
         kube_config_path = os.path.join(os.getcwd(), 'kube_config')
         create_kube_config_file(cluster.name, is_regional, kube_config_path)
                 
-        # add the admin role so that we can do the managed kubernetes stuff for spark
+        # add the admin role so that we can do the managed kubernetes stuff for Spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
