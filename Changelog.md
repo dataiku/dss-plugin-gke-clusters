@@ -2,6 +2,7 @@
 
 ## Next version
 - Fix the cluster configuration's merging mechanism for string parameters
+- Remove support for legacy authorization (ABAC)
 
 ##  Version 1.1.5 - Feature and bugfix release
 - Fix action "Add node pool"

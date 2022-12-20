@@ -174,7 +174,6 @@ class ClusterBuilder(object):
         self.is_vpc_native = None
         self.pod_ip_range = None
         self.svc_ip_range = None
-        self.legacy_auth = False
         self.http_load_balancing = None
         self.node_pools = []
         self.is_regional = False
@@ -239,10 +238,6 @@ class ClusterBuilder(object):
             self.pod_ip_range = pod_ip_range
             self.svc_ip_range = svc_ip_range
         return self
-    
-    def with_legacy_auth(self, legacy_auth):
-        self.legacy_auth = legacy_auth
-        return self
 
     def with_http_load_balancing(self, http_load_balancing):
         self.http_load_balancing = http_load_balancing
@@ -304,9 +299,6 @@ class ClusterBuilder(object):
                 # assume it's an existing range name (shared VPC case)
                 ip_allocation_policy["clusterSecondaryRangeName"] = cluster_pod_ip_range
             create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
-
-        if self.legacy_auth:
-            create_cluster_request_body["cluster"]["legacyAbac"] = {"enabled":True}
         
         create_cluster_request_body["cluster"]["addonsConfig"] = {}
         if self.http_load_balancing or self.is_autopilot:
