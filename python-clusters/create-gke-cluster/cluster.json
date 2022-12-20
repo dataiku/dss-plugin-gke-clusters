@@ -147,14 +147,6 @@
             "visibilityCondition": "!model.isAutopilot"
         },
         {
-            "name": "legacyAuth",
-            "label": "Legacy auth",
-            "description": "Use client certificate instead of GCP auth provider",
-            "type": "BOOLEAN",
-            "defaultValue": false,
-            "visibilityCondition": "!model.isAutopilot"
-        },
-        {
             "name": "creationSettingsValve",
             "label": "Custom creation settings",
             "description": "Additional settings for the cluster creation call, as JSON",

@@ -44,7 +44,6 @@ class MyCluster(Cluster):
                                                  self.config.get("svcIpRange", ""))
         cluster_builder.with_labels(self.config.get("clusterLabels", {}))
         if not is_autopilot:
-            cluster_builder.with_legacy_auth(self.config.get("legacyAuth", False))
             cluster_builder.with_http_load_balancing(self.config.get("httpLoadBalancing", False))
             if is_regional:
                 cluster_builder.with_regional(True, self.config.get("locations", []))
