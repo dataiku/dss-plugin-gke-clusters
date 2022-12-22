@@ -4,6 +4,7 @@ from dataiku.cluster import Cluster
 
 from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
+from dku_google.gcloud import create_kube_config_file
 from dku_kube.kubeconfig import merge_or_write_config
 from dku_kube.role import create_admin_binding
 from dku_utils.cluster import make_overrides, get_cluster_from_connection_info
@@ -26,19 +27,15 @@ class MyCluster(Cluster):
         cluster = clusters.get_cluster(self.config.get('clusterId', self.cluster_name), 'regional' if is_regional else 'zonal')
         cluster_info = cluster.get_info()
 
-        # build the config file for kubectl
-        # we don't add the context to the main config file, to not end up with an oversized config,
-        # and because 2 different clusters could be concurrently editing the config file
+        # delegate the creation of the kube config file to gcloud to use the client go auth plugin
         kube_config_path = os.path.join(os.getcwd(), 'kube_config')
-        kube_config = cluster.get_kube_config(self.cluster_id)
-        with open(kube_config_path, 'w') as f:
-            yaml.safe_dump(kube_config, f, default_flow_style=False)
+        create_kube_config_file(cluster.name, is_regional, kube_config_path)
                 
         # add the admin role so that we can do the managed kubernetes stuff for spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
-        overrides = make_overrides(self.config, kube_config, kube_config_path)
+        overrides = make_overrides(kube_config_path)
         return [overrides, {'kube_config_path':kube_config_path, 'cluster':cluster_info}]
 
     def stop(self, data):

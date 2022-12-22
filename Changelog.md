@@ -3,6 +3,7 @@
 ## Next version
 - Fix the cluster configuration's merging mechanism for string parameters
 - Remove support for legacy authorization (ABAC)
+- Authentication for `kubectl` command now relies on `gke-gcloud-auth-plugin` as this is the only supported mode starting with Kubernetes 1.26 (see [documentation](https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke))
 
 ##  Version 1.1.5 - Feature and bugfix release
 - Fix action "Add node pool"

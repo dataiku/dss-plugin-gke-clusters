@@ -40,17 +40,18 @@ def get_account():
     return account
 
 
-def _run_cmd(cmd=None):
+def _run_cmd(cmd=None, **kwargs):
     """
     Run command via subprocess. Clean retrieval of error message if fails. Trims any trailing space.
     """
 
     logging.info("Running CMD {}".format(cmd))
     try:
-        out = subprocess.check_output(cmd).rstrip()
+        out = subprocess.check_output(cmd, **kwargs).rstrip()
+        return out
     except subprocess.CalledProcessError as e:
-        print(e.output)
-    return out
+        logging.error(e.output)
+    return
 
 
 def get_instance_info():
@@ -117,3 +118,44 @@ def get_instance_service_account():
             instance_active_sa = identity["account"]
     logging.info("Active service account on DSS host is {}".format(instance_active_sa))
     return instance_active_sa
+
+
+def create_kube_config_file(cluster_id, is_cluster_regional, kube_config_path):
+    """
+    Delegate the creation of the kube config file to gke-gcloud-auth-plugin
+    Starting with Kubernetes 1.26, the authentication to execute kubectl commands on Google clusters
+        won't be available in kubectl anymore and the client go auth plugin needs to be used
+    The gke-gcloud-auth-plugin is installed on the machine directly from the image
+    It will keep an authentication token linked to the unix user on the machine for gcloud and kubectl calls
+    Command `gcloud container clusters get-credentials CLUSTER_NAME` configures the authentication
+        for the specified cluster, and creates an adequate kubeconfig file.
+    """
+
+    # Deleting the kube config for this cluster if it already exists
+    logging.info("Checking if a kube config file already exists")
+    if os.path.isfile(kube_config_path):
+        logging.info("Deleting existing kube config file: {}".format(kube_config_path))
+        os.remove(kube_config_path)
+    
+    # Configure the environment variables to use gcloud command
+    logging.info("Running command to activate gcloud auth plugin for cluster {}".format(cluster_id))
+    gcloud_env = os.environ.copy()
+    # Use the new client go auth plugin authentication mode
+    gcloud_env["USE_GKE_GCLOUD_AUTH_PLUGIN"] = "True"
+    # Provide the desired location for the kube config to override the default value used by the auth plugin
+    gcloud_env["KUBECONFIG"] = kube_config_path
+
+    instance_info = get_instance_info()
+
+    # Build the command
+    cmd = ["gcloud", "container", "clusters", "get-credentials", cluster_id]
+    if is_cluster_regional:
+        cmd.append("--region")
+        cmd.append(instance_info["region"])
+    else:
+        cmd.append("--zone")
+        cmd.append(instance_info["zone"])
+    
+    # Run the command
+    output = _run_cmd(cmd, env=gcloud_env)
+    logging.info(output)

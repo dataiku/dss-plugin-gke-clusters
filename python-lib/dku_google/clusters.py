@@ -238,7 +238,7 @@ class ClusterBuilder(object):
             self.pod_ip_range = pod_ip_range
             self.svc_ip_range = svc_ip_range
         return self
-    
+
     def with_http_load_balancing(self, http_load_balancing):
         self.http_load_balancing = http_load_balancing
         return self
@@ -299,23 +299,6 @@ class ClusterBuilder(object):
                 # assume it's an existing range name (shared VPC case)
                 ip_allocation_policy["clusterSecondaryRangeName"] = cluster_pod_ip_range
             create_cluster_request_body["cluster"]["ipAllocationPolicy"] = ip_allocation_policy
-            
-        need_issue_certificate = False
-
-        if cluster_version is None or cluster_version == "latest" or cluster_version == "-":
-            need_issue_certificate = True
-        else:
-            version_chunks = cluster_version.split('.')
-            major_version = int(version_chunks[0])
-            minor_version = int(version_chunks[1])
-            need_issue_certificate = major_version > 1 or (major_version == 1 and minor_version >= 12)
-                
-        if need_issue_certificate:
-            create_cluster_request_body["cluster"]["masterAuth"] = {
-                                                                        "clientCertificateConfig" : {
-                                                                            "issueClientCertificate" : True
-                                                                        }
-                                                                    }
         
         create_cluster_request_body["cluster"]["addonsConfig"] = {}
         if self.http_load_balancing or self.is_autopilot:
@@ -489,57 +472,6 @@ class Cluster(object):
         response = request.execute()
         return response
 
-    def get_kube_config(self, cluster_id=None):
-        response = self.get_info()
-        
-        if _is_none_or_blank(cluster_id):
-            cluster_id = self.name
-            
-        logging.info("Response=%s" % json.dumps(response, indent=2))
-
-        master_auth = response["masterAuth"]
-        endpoint = response["endpoint"]
-        
-        user = {
-            "name": "user-%s" % cluster_id,
-            "user": {
-                "auth-provider": {
-                    "name": "gcp",
-                    "config": {
-                        "cmd-args": "config config-helper --format=json",
-                        "cmd-path" : os.path.join(get_sdk_root(), "bin", "gcloud"),
-                        "expiry-key": "{.credential.token_expiry}",
-                        "token-key": "{.credential.access_token}"
-                    }
-                }
-            }
-        }
-        cluster = {
-            "name": "cluster-%s" % cluster_id,
-            "cluster": {
-                "certificate-authority-data": master_auth["clusterCaCertificate"],
-                "server": "https://%s" % endpoint
-            }
-        }
-        context = {
-            "name": "context-%s" % cluster_id,
-            "context": {
-                "cluster": cluster["name"],
-                "user": user["name"]
-            }
-        }
-        
-        config = {
-            "apiVersion": "v1",
-            "kind": "Config",
-            "preferences":{},
-            "clusters": [cluster],
-            "contexts": [context],
-            "users": [user],
-            "current-context": context["name"]
-        }
-        return config
-    
     def stop(self):
         location_params = self.get_location_params()
         request = self.get_clusters_api().delete(**location_params)
