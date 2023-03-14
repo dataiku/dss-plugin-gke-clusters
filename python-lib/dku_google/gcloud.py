@@ -158,4 +158,3 @@ def create_kube_config_file(cluster_id, is_cluster_regional, kube_config_path):
     
     # Run the command
     output = _run_cmd(cmd, env=gcloud_env)
-    logging.info(output)
