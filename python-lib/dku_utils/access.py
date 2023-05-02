@@ -1,5 +1,8 @@
 from six import text_type
-from collections import Mapping, Iterable
+try:
+    from collections.abc import Mapping, Iterable # py3
+except ImportError:
+    from collections import Mapping, Iterable # py2
 import sys
 
 if sys.version_info > (3,):
