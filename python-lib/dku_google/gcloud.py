@@ -42,16 +42,20 @@ def get_account():
 
 def _run_cmd(cmd=None, **kwargs):
     """
-    Run command via subprocess. Clean retrieval of error message if fails. Trims any trailing space.
+    Run command via subprocess. Clean retrieval and throw of error message if fails. Trims any trailing space.
     """
 
     logging.info("Running CMD {}".format(cmd))
-    try:
-        out = subprocess.check_output(cmd, **kwargs).rstrip()
-        return out
-    except subprocess.CalledProcessError as e:
-        logging.error(e.output)
-    return
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         universal_newlines=True,
+                         **kwargs)
+    out, err = p.communicate()
+    rv = p.wait()
+    if rv != 0:
+        raise Exception(err)
+    return out.rstrip()
 
 
 def get_instance_info():
