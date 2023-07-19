@@ -1,5 +1,8 @@
 # Changelog
 
+## Next version
+- Add support for spot VMs
+
 ## Version 1.3.0
 - Add more supported Python versions. This plugin can now use 2.7 (deprecated), 3.6, 3.7, 3.8, 3.9, 3.10 (experimental), 3.11 (experimental)
 - Fix issue when creating a cluster in a different region/zone
