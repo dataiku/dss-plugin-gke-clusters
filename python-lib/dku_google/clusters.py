@@ -26,6 +26,7 @@ class NodePoolBuilder(object):
         self.enable_gpu = False
         self.gpu_type = None
         self.gpu_count = None
+        self.use_spot_vms = False
         self.service_account = None
         self.nodepool_labels = {}
         self.nodepool_tags = []
@@ -103,6 +104,10 @@ class NodePoolBuilder(object):
         self.gpu_count = gpu_count
         return self
 
+    def with_spot_vms(self, use_spot_vms):
+        self.use_spot_vms = use_spot_vms
+        return self
+
     def with_nodepool_labels(self, nodepool_labels=[]):
         if nodepool_labels:
             nodepool_labels_dict = {l["from"]: l["to"] for l in nodepool_labels}
@@ -130,6 +135,8 @@ class NodePoolBuilder(object):
             logging.info("GPU option enabled.")
             node_pool['config']['accelerators'] = [{'acceleratorCount': self.gpu_count,
                                                     'acceleratorType': self.gpu_type}]
+        if self.use_spot_vms:
+            node_pool['config']['spot'] = True
         if self.disk_size_gb is not None and self.disk_size_gb > 0:
             node_pool['config']['diskSizeGb'] = self.disk_size_gb
         node_pool['config']['oauthScopes'] = self.oauth_scopes

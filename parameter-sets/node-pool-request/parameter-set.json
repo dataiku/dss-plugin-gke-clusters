@@ -49,6 +49,14 @@
             "defaultValue": 3
         },
         {
+            "name": "useSpotVms",
+            "label": "Use spot VMs",
+            "description": "See GKE documentation for more information about spot VMs: https://cloud.google.com/kubernetes-engine/docs/concepts/spot-vms",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": false
+        },
+        {
             "name": "numNodesAutoscaling",
             "label": "Enable nodes autoscaling",
             "type": "BOOLEAN",
