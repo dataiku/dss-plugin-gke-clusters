@@ -1,6 +1,7 @@
 # Changelog
 
 ## Next version
+- Improve error message when gcloud has not been properly authorized
 - Add support for spot VMs
 
 ## Version 1.3.0
