@@ -93,7 +93,7 @@
         {
             "name": "podIpRange",
             "label": "Pod IP range",
-            "description": "[Optional] Range name or CIDR block/mask notation, e.g. 10.1.0.0/14 or /14. MUST not overlap with the subnet IP range. If using a named range, ensure it is at least as large as /21.",
+            "description": "[Optional] Range name or CIDR block/mask notation, e.g. 10.1.0.0/16 or /14. MUST not overlap with the subnet IP range. If using a named range, ensure it is at least as large as /21.",
             "type": "STRING",
             "mandatory": false,
             "visibilityCondition": "model.isVpcNative"
