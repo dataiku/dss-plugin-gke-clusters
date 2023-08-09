@@ -295,12 +295,14 @@ class ClusterBuilder(object):
                 "createSubnetwork": False,
                 "useIpAliases": True
             }
-            if re.match('[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+', cluster_svc_ip_range):
+            # Should match both a.b.c.d/e and /e
+            range_regex = '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)?/[0-9]+$'
+            if re.match(range_regex, cluster_svc_ip_range):
                 ip_allocation_policy["servicesIpv4CidrBlock"] = cluster_svc_ip_range
             elif cluster_svc_ip_range is not None and len(cluster_svc_ip_range) > 0:
                 # assume it's an existing range name (shared VPC case)
                 ip_allocation_policy["servicesSecondaryRangeName"] = cluster_svc_ip_range
-            if re.match('[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+', cluster_pod_ip_range):
+            if re.match(range_regex, cluster_pod_ip_range):
                 ip_allocation_policy["clusterIpv4CidrBlock"] = cluster_pod_ip_range
             elif cluster_pod_ip_range is not None and len(cluster_pod_ip_range) > 0:
                 # assume it's an existing range name (shared VPC case)

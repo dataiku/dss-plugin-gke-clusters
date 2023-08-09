@@ -1,6 +1,7 @@
 # Changelog
 
 ## Next version
+- Fix CIDR block detection and improve descriptions of pod and service IP range fields
 - Improve error message when gcloud has not been properly authorized
 - Add support for spot VMs
 
