@@ -1,5 +1,8 @@
 # Changelog
 
+## Next version
+- Fix attaching to existing clusters from another project
+
 ## Version 1.3.1
 - Fix CIDR block detection and improve descriptions of pod and service IP range fields
 - Improve error message when gcloud has not been properly authorized
