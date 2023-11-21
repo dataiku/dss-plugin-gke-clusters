@@ -1,6 +1,6 @@
 # Changelog
 
-## Next version
+## Version 1.3.2
 - Fix attaching to existing clusters from another project
 
 ## Version 1.3.1
@@ -15,7 +15,7 @@
 ## Version 1.2.0
 - Fix the cluster configuration's merging mechanism for string parameters
 - Remove support for legacy authorization (ABAC)
-- Authentication for `kubectl` command now relies on `gke-gcloud-auth-plugin` as this is the only supported mode starting with Kubernetes 1.26 (see [documentation](https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke)). 
+- Authentication for `kubectl` command now relies on `gke-gcloud-auth-plugin` as this is the only supported mode starting with Kubernetes 1.26 (see [documentation](https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke)).
 /!\ if you're using a DSS version prior 11.4, you'll have to install `gke-gcloud-auth-plugin` manually (see the link above)
 
 ##  Version 1.1.5 - Feature and bugfix release
