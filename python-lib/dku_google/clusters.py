@@ -110,7 +110,7 @@ class NodePoolBuilder(object):
 
     def with_nodepool_labels(self, nodepool_labels=[]):
         if nodepool_labels:
-            nodepool_labels_dict = {l["from"]: l["to"] for l in nodepool_labels}
+            nodepool_labels_dict = {l["from"]: l.get("to", "") for l in nodepool_labels}
             logging.info("Adding labels {} to node pool {}".format(nodepool_labels_dict, self.name))
             self.nodepool_labels.update(nodepool_labels_dict)
         return self
@@ -232,6 +232,7 @@ class ClusterBuilder(object):
         return self
     
     def with_labels(self, labels={}):
+        labels = map(lambda label: {label["from"]: label.get("to", "")}, labels)
         self.labels.update(labels)
         if self.labels:
             logging.info("Adding labels {}".format(str(self.labels)))
