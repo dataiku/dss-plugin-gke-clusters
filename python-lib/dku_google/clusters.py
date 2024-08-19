@@ -5,7 +5,7 @@ from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_ins
 from dku_google.gcloud import get_instance_network, get_instance_service_account
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
 
-import os, sys, json, re
+import os, sys, json, re, random
 import logging
 
 from .operations import Operation
@@ -108,9 +108,13 @@ class NodePoolBuilder(object):
         self.use_spot_vms = use_spot_vms
         return self
 
-    def with_nodepool_labels(self, nodepool_labels=[]):
+    def with_nodepool_labels(self, nodepool_labels=[], cluster_labels={}):
+        if cluster_labels:
+            logging.info("Adding cluster labels {} to node pool {}".format(cluster_labels, self.name))
+            self.nodepool_labels.update(cluster_labels)
+
         if nodepool_labels:
-            nodepool_labels_dict = {l["from"]: l.get("to", "") for l in nodepool_labels}
+            nodepool_labels_dict = {label["from"]: label.get("to", "") for label in nodepool_labels}
             logging.info("Adding labels {} to node pool {}".format(nodepool_labels_dict, self.name))
             self.nodepool_labels.update(nodepool_labels_dict)
         return self
@@ -232,7 +236,7 @@ class ClusterBuilder(object):
         return self
     
     def with_labels(self, labels={}):
-        labels = map(lambda label: {label["from"]: label.get("to", "")}, labels)
+        labels = {label["from"]: label.get("to", "") for label in labels}
         self.labels.update(labels)
         if self.labels:
             logging.info("Adding labels {}".format(str(self.labels)))

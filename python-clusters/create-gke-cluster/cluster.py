@@ -62,8 +62,7 @@ class MyCluster(Cluster):
                 node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
                 node_pool_builder.with_spot_vms(node_pool.get('useSpotVms', False))
                 node_pool_labels = node_pool.get("nodepoolLabels", {})
-                node_pool_labels.extend(cluster_builder.labels) # Add cluster labels to node pools
-                node_pool_builder.with_nodepool_labels(node_pool_labels)
+                node_pool_builder.with_nodepool_labels(node_pool_labels, cluster_builder.labels)
                 node_pool_builder.with_nodepool_tags(node_pool.get('networkTags', []))
                 node_pool_builder.build()
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
