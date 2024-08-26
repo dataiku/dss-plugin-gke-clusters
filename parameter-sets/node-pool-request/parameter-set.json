@@ -156,6 +156,18 @@
             "type": "KEY_VALUE_LIST",
             "label": "K8S labels",
             "description": "Custom K8S metadata to attach to each node"
+        },
+        {
+            "name": "nodepoolTaints",
+            "type": "MAP",
+            "label": "Node pool taints",
+            "description": "Kubernetes taints to add to the node pool"
+        },
+        {
+            "name": "nodepoolGCPLabels",
+            "type": "MAP",
+            "label": "GCP labels",
+            "description": "Annotate the node pool's GCP resources"
         }
     ]
 }
