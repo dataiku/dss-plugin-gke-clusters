@@ -108,11 +108,7 @@ class NodePoolBuilder(object):
         self.use_spot_vms = use_spot_vms
         return self
 
-    def with_nodepool_labels(self, nodepool_labels=[], cluster_formatted_labels={}):
-        if cluster_formatted_labels:
-            logging.info("Adding cluster labels {} to node pool {}".format(cluster_formatted_labels, self.name))
-            self.nodepool_labels.update(cluster_formatted_labels)
-
+    def with_nodepool_labels(self, nodepool_labels=[]):
         if nodepool_labels:
             nodepool_labels_dict = {label["from"]: label.get("to", "") for label in nodepool_labels}
             logging.info("Adding labels {} to node pool {}".format(nodepool_labels_dict, self.name))
