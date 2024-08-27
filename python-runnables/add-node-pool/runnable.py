@@ -50,7 +50,7 @@ class MyRunnable(Runnable):
         node_pool_builder.with_service_account(node_pool_config.get('serviceAccountType', None),
                                                node_pool_config.get('serviceAccount', None))
         node_pool_builder.with_nodepool_labels(node_pool_config.get('nodepoolLabels', {}))
-        node_pool_builder.with_nodepool_taints(node_pool.get('nodepoolTaints', {}))
+        node_pool_builder.with_nodepool_taints(node_pool.get('nodepoolTaints', []))
         node_pool_builder.with_nodepool_gcp_labels(node_pool_config.get('nodepoolGCPLabels', {}), cluster_data.get("cluster", {}).get("resourceLabels", {}))
         node_pool_builder.with_nodepool_tags(node_pool_config.get('networkTags', []))
 

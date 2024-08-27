@@ -29,7 +29,7 @@ class NodePoolBuilder(object):
         self.use_spot_vms = False
         self.service_account = None
         self.nodepool_labels = {}
-        self.nodepool_taints = {}
+        self.nodepool_taints = []
         self.nodepool_gcp_labels = {}
         self.nodepool_tags = []
  
@@ -117,21 +117,20 @@ class NodePoolBuilder(object):
             self.nodepool_labels.update(nodepool_labels_dict)
         return self
     
-    def with_nodepool_taints(self, nodepool_taints={}):
+    def with_nodepool_taints(self, nodepool_taints=[]):
         if nodepool_taints:
             logging.info("Adding taints {} to node pool {}".format(nodepool_taints, self.name))
-            self.nodepool_taints.update(nodepool_taints)
+            self.nodepool_taints.extend(nodepool_taints)
         return self
 
-    def with_nodepool_gcp_labels(self, nodepool_gcp_labels=[], cluster_formatted_labels=[]):
+    def with_nodepool_gcp_labels(self, nodepool_gcp_labels={}, cluster_formatted_labels=[]):
         if cluster_formatted_labels:
             logging.info("Adding cluster labels {} to node pool {}".format(cluster_formatted_labels, self.name))
             self.nodepool_gcp_labels.update(cluster_formatted_labels)
 
         if nodepool_gcp_labels:
-            nodepool_gcp_labels_dict = {label["from"]: label.get("to", "") for label in nodepool_gcp_labels}
-            logging.info("Adding labels {} to node pool {}".format(nodepool_gcp_labels_dict, self.name))
-            self.nodepool_gcp_labels.update(nodepool_gcp_labels_dict)
+            logging.info("Adding labels {} to node pool {}".format(nodepool_gcp_labels, self.name))
+            self.nodepool_gcp_labels.update(nodepool_gcp_labels)
         return self
 
     def with_nodepool_tags(self, nodepool_tags=[]):
