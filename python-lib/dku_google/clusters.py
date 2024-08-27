@@ -119,7 +119,7 @@ class NodePoolBuilder(object):
     
     def with_nodepool_taints(self, nodepool_taints={}):
         if nodepool_taints:
-            logging.info("Adding taints {} to node pool {}").format(nodepool_taints, self.name)
+            logging.info("Adding taints {} to node pool {}".format(nodepool_taints, self.name))
             self.nodepool_taints.update(nodepool_taints)
         return self
 
