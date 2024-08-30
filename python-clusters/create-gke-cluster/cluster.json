@@ -23,7 +23,7 @@
             "name": "releaseChannel",
             "label": "Release Channel",
             "type": "SELECT",
-            "defaultValue": "STABLE",
+            "defaultValue": "REGULAR",
             "description": "Find more information on the release channels here: https://cloud.google.com/kubernetes-engine/docs/concepts/release-channels",
             "getChoicesFromPython": true,
             "triggerParameters": ["isAutopilot"]
