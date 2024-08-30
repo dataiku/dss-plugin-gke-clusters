@@ -9,6 +9,7 @@
 
     "autoClusterNamePrefix" : "gke-cluster-",
     "clusterNamePreparationLowercasing" : true,
+    "paramsPythonSetup": "get_release_channel_options.py",
 
     "params": [
         {
@@ -19,23 +20,20 @@
             "mandatory" : true
         },
         {
-            "name": "clusterVersion",
-            "label": "Kubernetes version",
-            "type": "STRING",
-            "defaultValue": "latest",
-            "visibilityCondition": "!model.isAutopilot"
-        },
-        {
             "name": "releaseChannel",
             "label": "Release Channel",
             "type": "SELECT",
             "defaultValue": "STABLE",
-            "selectChoices": [
-                {"label":"Stable", "value":"STABLE"},
-                {"label":"Regular", "value":"REGULAR"},
-                {"label":"Rapid", "value":"RAPID"}
-            ],
-            "visibilityCondition": "model.isAutopilot"
+            "description": "Find more information on the release channels here: https://cloud.google.com/kubernetes-engine/docs/concepts/release-channels",
+            "getChoicesFromPython": true,
+            "triggerParameters": ["isAutopilot"]
+        },
+        {
+            "name": "clusterVersion",
+            "label": "Kubernetes version",
+            "type": "STRING",
+            "defaultValue": "latest",
+            "description": "Defaults to the latest of the configured release channel. Find more information on the available versions here: https://cloud.google.com/kubernetes-engine/docs/release-notes"
         },
         {
             "name": "isRegional",

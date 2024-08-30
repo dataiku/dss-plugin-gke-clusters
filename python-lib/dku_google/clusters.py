@@ -197,11 +197,14 @@ class ClusterBuilder(object):
         self.version = version
         return self
     
-    def with_autopilot(self, is_autopilot, release_channel):
+    def with_autopilot(self, is_autopilot):
         self.is_autopilot = is_autopilot
-        self.release_channel = release_channel
         return self
     
+    def with_release_channel(self, release_channel):
+        self.release_channel = release_channel
+        return self
+
     def with_regional(self, is_regional, locations=[]):
         self.is_regional = is_regional
         self.locations = locations
@@ -320,8 +323,15 @@ class ClusterBuilder(object):
             
         if self.is_autopilot:
             create_cluster_request_body['cluster']['autopilot'] = {"enabled":True}
-            create_cluster_request_body['cluster']['releaseChannel'] = {"channel":self.release_channel}
-            
+
+        if not self.release_channel or self.release_channel == 'NO_CHANNEL':
+            # The version can be "static" but the cluster will automatically be enrolled in either the most stable
+            # release channel where the initial cluster version is available. So there will be updates eventually (security patches, etc.)
+            # We can look into disabling auto-nodepool upgrades
+            create_cluster_request_body['cluster']['releaseChannel'] = {}
+        else:
+            create_cluster_request_body['cluster']['releaseChannel'] = {"channel": self.release_channel}
+
         if not _is_none_or_blank(self.settings_valve):
             valve = json.loads(self.settings_valve)
             create_cluster_request_body["cluster"] = _merge_objects(create_cluster_request_body["cluster"], valve)
