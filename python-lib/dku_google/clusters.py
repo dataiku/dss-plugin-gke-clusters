@@ -109,8 +109,8 @@ class NodePoolBuilder(object):
         return self
 
     def with_nodepool_labels(self, nodepool_labels=[]):
-        if any(nodepool_labels, lambda label: not label.get("from", "")):
-            raise ValueError("Some of the cluster key-value label pairs have no key and thus are invalid: %s" % nodepool_labels)
+        if any(not label.get("from", "") for label in nodepool_labels):
+            raise ValueError("Some of the cluster key-value label pairs have no key and thus are invalid")
 
         if nodepool_labels:
             nodepool_labels_dict = {label["from"]: label.get("to", "") for label in nodepool_labels}
@@ -235,8 +235,8 @@ class ClusterBuilder(object):
         return self
     
     def with_labels(self, labels={}):
-        if any(labels, lambda label: not label.get("from", "")):
-            raise ValueError("Some of the cluster key-value label pairs have no key and thus are invalid: %s" % labels)
+        if any(not label.get("from", "") for label in labels):
+            raise ValueError("Some of the cluster key-value label pairs have no key and thus are invalid")
 
         labels = {label["from"]: label.get("to", "") for label in labels}
         self.labels.update(labels)
