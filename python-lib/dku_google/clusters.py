@@ -190,6 +190,7 @@ class ClusterBuilder(object):
         self.locations = []
         self.is_autopilot = False
         self.release_channel = 'STABLE'
+        self.release_channel_enrollment = True
         self.settings_valve = None
        
     def with_name(self, name):
@@ -206,6 +207,10 @@ class ClusterBuilder(object):
     
     def with_release_channel(self, release_channel):
         self.release_channel = release_channel
+        return self
+
+    def with_release_channel_enrollment(self, release_channel_enrollment):
+        self.release_channel_enrollment = release_channel_enrollment
         return self
 
     def with_regional(self, is_regional, locations=[]):
@@ -331,12 +336,15 @@ class ClusterBuilder(object):
         if self.is_autopilot:
             create_cluster_request_body['cluster']['autopilot'] = {"enabled":True}
 
-        if not self.release_channel or self.release_channel == 'NO_CHANNEL':
-            # The version can be "static" but the cluster will automatically be enrolled in either the most stable
-            # release channel where the initial cluster version is available. So there will be updates eventually (security patches, etc.)
-            # We can look into disabling auto-nodepool upgrades
+        if not self.is_autopilot and not self.release_channel_enrollment:
+            # We can prevent the cluster from being enrolled into a release channel by not specifying the channel to enroll into.
+            # However, the release channel object must be specified otherwise the cluster will be enrolled into the most stable release channel that supports the cluster version.
+            # Note that autopilot clusters must be enrolled into either of the Rapid, Regular or Stable release channels (Extended not supported)
             create_cluster_request_body['cluster']['releaseChannel'] = {}
-        else:
+        elif self.release_channel != "DEFAULT":
+            # Specify the release channel to enroll into.
+            # If the channel is default (only possible with standard clusters),
+            # the cluster will be automatically enrolled in the most stable channel possible for the defined cluster version (Regular if the version is 'latest')
             create_cluster_request_body['cluster']['releaseChannel'] = {"channel": self.release_channel}
 
         if not _is_none_or_blank(self.settings_valve):

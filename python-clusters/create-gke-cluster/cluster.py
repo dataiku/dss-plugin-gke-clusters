@@ -34,11 +34,13 @@ class MyCluster(Cluster):
             cluster_builder.with_regional(True, []) # autopilot => regional
             cluster_builder.with_autopilot(True)
             cluster_builder.with_version(self.config.get("clusterVersion", None))
+            cluster_builder.with_release_channel(self.config.get("releaseChannel", "STABLE"))
         else:
             cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
+            cluster_builder.with_release_channel_enrollment(self.config.get("releaseChannelEnrollment", True))
+            cluster_builder.with_release_channel(self.config.get("standardReleaseChannel", "DEFAULT"))
             cluster_builder.with_initial_node_count(self.config.get("numNodes", 3))
 
-        cluster_builder.with_release_channel(self.config.get("releaseChannel", "STABLE"))
 
         cluster_builder.with_network(self.config.get("inheritFromDSSHost", True),
                                      self.config.get("network", "").strip(),

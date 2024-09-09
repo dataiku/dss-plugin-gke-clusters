@@ -9,7 +9,6 @@
 
     "autoClusterNamePrefix" : "gke-cluster-",
     "clusterNamePreparationLowercasing" : true,
-    "paramsPythonSetup": "get_release_channel_options.py",
 
     "params": [
         {
@@ -23,10 +22,37 @@
             "name": "releaseChannel",
             "label": "Release Channel",
             "type": "SELECT",
-            "defaultValue": "REGULAR",
+            "defaultValue": "STABLE",
+            "selectChoices": [
+                { "label": "Stable", "value": "STABLE" },
+                { "label": "Regular", "value": "REGULAR" },
+                { "label": "Rapid", "value": "RAPID" }
+            ],
             "description": "Find more information on the release channels here: https://cloud.google.com/kubernetes-engine/docs/concepts/release-channels",
-            "getChoicesFromPython": true,
-            "triggerParameters": ["isAutopilot"]
+            "visibilityCondition": "model.isAutopilot"
+        },
+        {
+            "name": "releaseChannelEnrollment",
+            "label": "Enroll into a release channel",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "description": "Whether the cluster should be enrolled in a release channel (recommended).",
+            "visibilityCondition": "!model.isAutopilot"
+        },
+        {
+            "name": "standardReleaseChannel",
+            "label": "Release Channel",
+            "type": "SELECT",
+            "defaultValue": "DEFAULT",
+            "selectChoices": [
+                { "label": "Default (recommended)", "value": "DEFAULT"},
+                { "label": "Stable", "value": "STABLE" },
+                { "label": "Regular", "value": "REGULAR" },
+                { "label": "Rapid", "value": "RAPID" },
+                { "label": "Extended", "value": "EXTENDED"}
+            ],
+            "description": "Default will enroll you in the most stable channel for the version you have selected.\nIf you have defined 'latest' for your cluster version, you will be enrolled in the 'Regular' channel.\nFind more information on the release channels here: https://cloud.google.com/kubernetes-engine/docs/concepts/release-channels",
+            "visibilityCondition": "!model.isAutopilot && model.releaseChannelEnrollment"
         },
         {
             "name": "clusterVersion",
