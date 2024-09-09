@@ -59,7 +59,8 @@
             "label": "Kubernetes version",
             "type": "STRING",
             "defaultValue": "latest",
-            "description": "Defaults to the latest of the configured release channel. Find more information on the available versions here: https://cloud.google.com/kubernetes-engine/docs/release-notes"
+            "description": "Defaults to the latest of the configured release channel (or if not enrolled, to a default version in the Regular channel). Find more information on the available versions here: https://cloud.google.com/kubernetes-engine/docs/release-notes",
+            "visibilityCondition": "!model.isAutopilot"
         },
         {
             "name": "isRegional",

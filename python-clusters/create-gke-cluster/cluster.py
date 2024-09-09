@@ -33,7 +33,6 @@ class MyCluster(Cluster):
         if is_autopilot:
             cluster_builder.with_regional(True, []) # autopilot => regional
             cluster_builder.with_autopilot(True)
-            cluster_builder.with_version(self.config.get("clusterVersion", None))
             cluster_builder.with_release_channel(self.config.get("releaseChannel", "STABLE"))
         else:
             cluster_builder.with_version(self.config.get("clusterVersion", "latest"))
