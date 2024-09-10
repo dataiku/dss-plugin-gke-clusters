@@ -29,6 +29,8 @@ class NodePoolBuilder(object):
         self.use_spot_vms = False
         self.service_account = None
         self.nodepool_labels = {}
+        self.nodepool_taints = []
+        self.nodepool_gcp_labels = {}
         self.nodepool_tags = []
  
     def with_name(self, name):
@@ -117,6 +119,25 @@ class NodePoolBuilder(object):
             logging.info("Adding labels {} to node pool {}".format(nodepool_labels_dict, self.name))
             self.nodepool_labels.update(nodepool_labels_dict)
         return self
+    
+    def with_nodepool_taints(self, nodepool_taints=[]):
+        if nodepool_taints:
+            logging.info("Adding taints {} to node pool {}".format(nodepool_taints, self.name))
+            self.nodepool_taints.extend(nodepool_taints)
+        return self
+
+    def with_nodepool_gcp_labels(self, nodepool_gcp_labels={}, cluster_formatted_labels=[]):
+        if any(not label.get("from", "") for label in nodepool_gcp_labels):
+            raise ValueError("Some of the cluster key-value label pairs have no key and thus are invalid: %s" % nodepool_gcp_labels)
+
+        if cluster_formatted_labels:
+            logging.info("Adding cluster labels {} to node pool {}".format(cluster_formatted_labels, self.name))
+            self.nodepool_gcp_labels.update(cluster_formatted_labels)
+
+        if nodepool_gcp_labels:
+            logging.info("Adding labels {} to node pool {}".format(nodepool_gcp_labels, self.name))
+            self.nodepool_gcp_labels.update(nodepool_gcp_labels)
+        return self
 
     def with_nodepool_tags(self, nodepool_tags=[]):
         if nodepool_tags:
@@ -158,6 +179,8 @@ class NodePoolBuilder(object):
                                             "maxNodeCount":self.max_node_count if self.max_node_count is not None else node_pool['initialNodeCount']
                                         }
         node_pool["config"]["labels"] = self.nodepool_labels
+        node_pool["config"]["taints"] = self.nodepool_taints
+        node_pool["config"]["resourceLabels"] = self.nodepool_gcp_labels
         node_pool["config"]["tags"] = self.nodepool_tags
             
         if not _is_none_or_blank(self.settings_valve):

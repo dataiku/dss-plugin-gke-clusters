@@ -156,6 +156,49 @@
             "type": "KEY_VALUE_LIST",
             "label": "K8S labels",
             "description": "Custom K8S metadata to attach to each node"
+        },
+        {
+            "name": "nodepoolTaints",
+            "label": "Nodepool taints",
+            "description": "WARNING: MUST CREATE AT LEAST ONE NODE POOL WITHOUT TAINTS. https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+            "mandatory": false,
+            "type": "OBJECT_LIST",
+            "subParams": [
+                {
+                    "type": "SEPARATOR",
+                    "label": "Enter your taints"
+                },
+                {
+                    "name": "key",
+                    "type": "STRING",
+                    "label": "Key",
+                    "mandatory": true
+                },
+                {
+                    "name": "value",
+                    "type": "STRING",
+                    "label": "Value",
+                    "mandatory": false
+                },
+                {
+                    "name": "effect",
+                    "type": "SELECT",
+                    "label": "Effect",
+                    "selectChoices": [
+                        {"value": "NO_SCHEDULE", "label": "NoSchedule"},
+                        {"value": "NO_EXECUTE", "label": "NoExecute"},
+                        {"value": "PREFER_NO_SCHEDULE", "label": "PreferNoSchedule"}
+                    ],
+                    "mandatory": true,
+                    "defaultValue": "NO_SCHEDULE"
+                }
+            ]
+        },
+        {
+            "name": "nodepoolGCPLabels",
+            "type": "MAP",
+            "label": "GCP labels",
+            "description": "Annotate the node pool's GCP resources"
         }
     ]
 }

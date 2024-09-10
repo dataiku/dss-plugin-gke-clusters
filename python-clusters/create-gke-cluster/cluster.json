@@ -136,7 +136,7 @@
             "name": "clusterLabels",
             "label": "Labels",
             "type": "KEY_VALUE_LIST",
-            "description": "Annotate all the cluster's related GCP resources"
+            "description": "Annotate all the cluster's related GCP resources (cluster labels will be inherited by node pools)"
         },
         {
             "name": "httpLoadBalancing",
