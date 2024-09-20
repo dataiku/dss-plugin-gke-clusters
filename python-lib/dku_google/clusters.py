@@ -126,10 +126,7 @@ class NodePoolBuilder(object):
             self.nodepool_taints.extend(nodepool_taints)
         return self
 
-    def with_nodepool_gcp_labels(self, nodepool_gcp_labels={}, cluster_formatted_labels=[]):
-        if any(not label.get("from", "") for label in nodepool_gcp_labels):
-            raise ValueError("Some of the cluster key-value label pairs have no key and thus are invalid: %s" % nodepool_gcp_labels)
-
+    def with_nodepool_gcp_labels(self, nodepool_gcp_labels={}, cluster_formatted_labels={}):
         if cluster_formatted_labels:
             logging.info("Adding cluster labels {} to node pool {}".format(cluster_formatted_labels, self.name))
             self.nodepool_gcp_labels.update(cluster_formatted_labels)
