@@ -165,7 +165,6 @@
         {
             "name": "nodepoolTaints",
             "label": "Nodepool taints",
-            "description": "<div class=\"alert alert-warning\"><i class=\"icon-dku-warning\"/><span>WARNING: MUST CREATE AT LEAST ONE NODE POOL WITHOUT TAINTS. <a href=\"https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/\">See documentation</a></span></div>",
             "mandatory": false,
             "type": "OBJECT_LIST",
             "subParams": [
@@ -198,6 +197,10 @@
                     "defaultValue": "NO_SCHEDULE"
                 }
             ]
+        },
+        {
+            "type": "SEPARATOR",
+            "description": "<div class=\"alert alert-warning\"><i class=\"icon-dku-warning\"/><span>WARNING: MUST CREATE AT LEAST ONE NODE POOL WITHOUT TAINTS. <a href=\"https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/\">See documentation</a></span></div>"
         },
         {
             "name": "nodepoolGCPLabels",
