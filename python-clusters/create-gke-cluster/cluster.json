@@ -45,11 +45,11 @@
             "type": "SELECT",
             "defaultValue": "DEFAULT",
             "selectChoices": [
-                { "label": "Default (recommended)", "value": "DEFAULT"},
+                { "label": "Default (recommended)", "value": "DEFAULT" },
                 { "label": "Stable", "value": "STABLE" },
                 { "label": "Regular", "value": "REGULAR" },
                 { "label": "Rapid", "value": "RAPID" },
-                { "label": "Extended", "value": "EXTENDED"}
+                { "label": "Extended", "value": "EXTENDED" }
             ],
             "description": "Default will enroll you in the most stable channel for the version you have selected.\nIf you have defined 'latest' for your cluster version, you will be enrolled in the 'Regular' channel.\nFind more information on the release channels here: https://cloud.google.com/kubernetes-engine/docs/concepts/release-channels",
             "visibilityCondition": "!model.isAutopilot && model.releaseChannelEnrollment"
@@ -59,7 +59,7 @@
             "label": "Kubernetes version",
             "type": "STRING",
             "defaultValue": "latest",
-            "description": "Defaults to the latest of the configured release channel (or if not enrolled, to a default version in the Regular channel). Find more information on the available versions here: https://cloud.google.com/kubernetes-engine/docs/release-notes",
+            "description": "Defaults to the latest version of the configured release channel (or if not enrolled, to a default version in the Regular channel). Find more information on the available versions here: https://cloud.google.com/kubernetes-engine/docs/release-notes",
             "visibilityCondition": "!model.isAutopilot"
         },
         {
