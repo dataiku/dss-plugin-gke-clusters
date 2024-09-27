@@ -10,7 +10,12 @@
     "pluginParams": [
     ],
     "params": [
-       {
+        {
+            "type": "SEPARATOR",
+            "label": "Node pool definition",
+            "description": "<hr>"
+        },
+        {
             "name": "machineType",
             "label": "Machine type",
             "description": "GCE machine type for the nodes. See GCP documentation for available machine types.",
@@ -160,7 +165,6 @@
         {
             "name": "nodepoolTaints",
             "label": "Nodepool taints",
-            "description": "WARNING: MUST CREATE AT LEAST ONE NODE POOL WITHOUT TAINTS. https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
             "mandatory": false,
             "type": "OBJECT_LIST",
             "subParams": [
@@ -193,6 +197,11 @@
                     "defaultValue": "NO_SCHEDULE"
                 }
             ]
+        },
+        {
+            "type": "SEPARATOR",
+            "description": "<div class=\"alert alert-warning\"><i class=\"icon-dku-warning\"/><span>WARNING: MUST CREATE AT LEAST ONE NODE POOL WITHOUT TAINTS. <a href=\"https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/\">See documentation</a></span></div>",
+            "visibilityCondition": "model.nodepoolTaints && (model.nodepoolTaints.length > 0)"
         },
         {
             "name": "nodepoolGCPLabels",
