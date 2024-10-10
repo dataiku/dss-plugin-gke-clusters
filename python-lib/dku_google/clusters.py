@@ -122,8 +122,9 @@ class NodePoolBuilder(object):
     
     def with_nodepool_taints(self, nodepool_taints=[]):
         if nodepool_taints:
-            logging.info("Adding taints {} to node pool {}".format(nodepool_taints, self.name))
-            self.nodepool_taints.extend(nodepool_taints)
+            nodepool_taints_sanitized = [{ "key": taint["key"], "value": taint.get("value", ""), "effect": taint["effect"] } for taint in nodepool_taints]
+            logging.info("Adding taints {} to node pool {}".format(nodepool_taints_sanitized, self.name))
+            self.nodepool_taints.extend(nodepool_taints_sanitized)
         return self
 
     def with_nodepool_gcp_labels(self, nodepool_gcp_labels={}, cluster_formatted_labels={}):
