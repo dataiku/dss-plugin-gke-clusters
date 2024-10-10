@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.4.0 - Feature and bugfix release
+- Add support for release channels on standard clusters
+- Add support for GCP labels on nodepools
+- Add support for taints on nodepools
+- Fix cluster GCP labels
+- Miscellaneous UI improvements
+
 ## Version 1.3.2
 - Fix attaching to existing clusters from another project
 
