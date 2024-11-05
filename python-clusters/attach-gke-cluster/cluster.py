@@ -32,7 +32,7 @@ class MyCluster(Cluster):
         region_or_zone = clusters.region if is_regional else clusters.zone
         create_kube_config_file(clusters.project_id, cluster.name, is_regional, region_or_zone, kube_config_path)
                 
-        # add the admin role so that we can do the managed kubernetes stuff for spark
+        # add the admin role so that we can do the managed kubernetes stuff for Spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
