@@ -29,6 +29,13 @@
             "defaultValue" : false
         },
         {
+            "name": "isDnsEndpoint",
+            "label": "Use DNS Endpoint",
+            "description": "Whether to use the DNS Endpoint to connect to the cluster. If not selected, will use IP",
+            "type": "BOOLEAN",
+            "defaultValue" : false
+        },
+        {
             "name": "userName",
             "label": "User name",
             "description": "If not the same as the gcloud user",
