@@ -31,7 +31,7 @@ class MyCluster(Cluster):
         kube_config_path = os.path.join(os.getcwd(), 'kube_config')
         region_or_zone = clusters.region if is_regional else clusters.zone
         is_dns_endpont = self.config.get('isDnsEndpoint', False)
-        create_kube_config_file(clusters.project_id, cluster.name, is_regional, region_or_zone, kube_config_pa, is_dns_endpointth, is_dns_endpoint)
+        create_kube_config_file(clusters.project_id, cluster.name, is_regional, region_or_zone, kube_config_pa, is_dns_endpoint)
                 
         # add the admin role so that we can do the managed kubernetes stuff for spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)
