@@ -14,7 +14,9 @@ def has_installer_daemonset(kube_config_path=None):
         env["KUBECONFIG"] = kube_config_path
         logging.info("Found KUBECONFIG={}".format(env["KUBECONFIG"]))
 
-    out, err = run_with_timeout(["kubectl", "get", "daemonset", "nvidia-driver-installer", "-n", "kube-system", "--ignore-not-found"], env=env, timeout=5)
+    cmd = ["kubectl", "get", "daemonset", "nvidia-driver-installer", "-n", "kube-system", "--ignore-not-found"]
+    logging.info("Checking if NVIDIA GPU driver installer is present on the cluster with : %s" % " ".join(cmd))
+    out, err = run_with_timeout(cmd, env=env, timeout=5)
     return len(out.strip()) > 0
 
 def create_installer_daemonset_if_needed(kube_config_path=None):
@@ -34,13 +36,14 @@ def create_installer_daemonset_if_needed(kube_config_path=None):
         daemonset_path = download_to_disk(DAEMONSET_MANIFEST_URL, download_location="daemonset-preloaded.yaml")
 
         if not daemonset_path:
-            logging.warning("Unable to retrieve daemonset from '%s', using bundled definition instead.")
+            logging.warning("Unable to retrieve daemonset from '%s', using bundled definition instead." % DAEMONSET_MANIFEST_URL)
             daemonset_path = get_static_resource_path("daemonset-preloaded.yaml")
             if not os.path.exists(daemonset_path):
                 logging.error("No bundled daemonset definition found at '%s'. GPU driver must be installed manually." % daemonset_path)
                 return
 
-        logging.info("NVIDIA driver installer daemonset definition located at '%s'" % daemonset_path)
-        subprocess.check_call(["kubectl", "apply", "-f", daemonset_path], env=env)
+        cmd = ["kubectl", "apply", "-f", daemonset_path]
+        logging.info("Running command to install NVIDIA driver installer: %s", " ".join(cmd))
+        run_with_timeout(cmd, env=env, timeout=5)
     else:
         logging.info("NVIDIA driver daemonset already present on the cluster. Skipping.")
