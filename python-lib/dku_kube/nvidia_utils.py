@@ -10,7 +10,7 @@ DAEMONSET_MANIFEST_URL = "https://raw.githubusercontent.com/GoogleCloudPlatform/
 def has_installer_daemonset(kube_config_path=None):
     env = os.environ.copy()
     if not _is_none_or_blank(kube_config_path):
-        logging.info("Setting kube_config path from KUBECONFIG env variable...")
+        logging.debug("Setting kube_config path from KUBECONFIG env variable...")
         env["KUBECONFIG"] = kube_config_path
         logging.info("Found KUBECONFIG={}".format(env["KUBECONFIG"]))
 
@@ -23,8 +23,10 @@ def create_installer_daemonset_if_needed(kube_config_path=None):
     """
     env = os.environ.copy()
     if not has_installer_daemonset(kube_config_path):
+        logging.info("Daemonset is not installed on the cluster. Installing.")
+
         if not _is_none_or_blank(kube_config_path):
-            logging.info("Setting kube_config path from KUBECONFIG env variable...")
+            logging.debug("Setting kube_config path from KUBECONFIG env variable...")
             env["KUBECONFIG"] = kube_config_path
             logging.info("Found KUBECONFIG={}".format(env["KUBECONFIG"]))
 
@@ -38,6 +40,7 @@ def create_installer_daemonset_if_needed(kube_config_path=None):
                 logging.error("No bundled daemonset definition found at '%s'. GPU driver must be installed manually." % daemonset_path)
                 return
 
+        logging.info("NVIDIA driver installer daemonset definition located at '%s'" % daemonset_path)
         subprocess.check_call(["kubectl", "apply", "-f", daemonset_path], env=env)
     else:
         logging.info("NVIDIA driver daemonset already present on the cluster. Skipping.")
