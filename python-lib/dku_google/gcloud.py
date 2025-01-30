@@ -45,8 +45,7 @@ def _run_cmd(cmd=None, **kwargs):
     Run command via subprocess. Clean retrieval and throw of error message if fails. Trims any trailing space.
     """
 
-    cmd_pretty = ' '.join(cmd)
-    logging.info("Running CMD: {}".format(cmd_pretty))
+    logging.info("Running CMD {}".format(cmd))
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -56,10 +55,7 @@ def _run_cmd(cmd=None, **kwargs):
     rv = p.wait()
     if rv != 0:
         raise Exception(err)
-
-    cmd_out = out.rstrip()
-    logging.info(f"'{cmd_pretty}' output: {cmd_out}")
-    return cmd_out
+    return out.rstrip()
 
 
 def get_instance_info():
