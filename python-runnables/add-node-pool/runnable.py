@@ -2,7 +2,7 @@ import dataiku
 import json, logging, os
 from dku_google.clusters import Clusters
 from dku_utils.cluster import get_cluster_from_dss_cluster
-from dku_kube.nvidia_utils import create_installer_daemonset
+from dku_kube.nvidia_utils import create_installer_daemonset_if_needed
 from dataiku.runnables import Runnable
 
 
@@ -59,8 +59,9 @@ class MyRunnable(Runnable):
         create_op.wait_done()
         logging.info("Cluster node pool created")
 
-        # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
-        create_installer_daemonset(kube_config_path=kube_config_path)
+        # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes) if it's required.
+        if node_pool_config.get('withGpu', False): # GPUs are not supported on autopilot (says the GKE doc)
+            create_installer_daemonset_if_needed(kube_config_path=kube_config_path)
 
 
         return '<pre class="debug">%s</pre>' % json.dumps(node_pool.get_info(), indent=2)
