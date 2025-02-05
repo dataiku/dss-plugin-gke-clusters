@@ -58,7 +58,7 @@ def _run_cmd(cmd=None, **kwargs):
         raise Exception(err)
 
     cmd_out = out.rstrip()
-    logging.info(f"'{cmd_pretty}' output: {cmd_out}")
+    logging.debug(f"'{cmd_pretty}' output: {cmd_out}")
     return cmd_out
 
 
