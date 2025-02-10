@@ -17,6 +17,7 @@ class MyRunnable(Runnable):
         return None
 
     def run(self, progress_callback):
+        logging.getLogger().setLevel(self.config.get('logLevel', 'INFO'))
         cluster_data, cluster, dss_cluster_settings, dss_cluster_config = get_cluster_from_dss_cluster(self.config['clusterId'])
         
         if cluster_data.get("cluster", {}).get("autopilot", {}).get("enabled", False):

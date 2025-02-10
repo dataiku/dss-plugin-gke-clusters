@@ -40,6 +40,39 @@
             "type": "PRESET",
             "parameterSetId" : "node-pool-request",
             "mandatory" : true
+        },
+        {
+            "name": "logLevel",
+            "label": "Log level",
+            "type": "SELECT",
+            "selectChoices": [
+                {
+                    "value": "NOTSET",
+                    "label": "NotSet"
+                },
+                {
+                    "value": "DEBUG",
+                    "label": "Debug"
+                },
+                {
+                    "value": "INFO",
+                    "label": "Info"
+                },
+                {
+                    "value": "WARNING",
+                    "label": "Warning"
+                },
+                {
+                    "value": "ERROR",
+                    "label": "Error"
+                },
+                {
+                    "value": "CRITICAL",
+                    "label": "Critical"
+                }
+            ],
+            "mandatory": false,
+            "defaultValue": "INFO"
         }
     ]
 }

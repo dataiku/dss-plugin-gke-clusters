@@ -19,6 +19,8 @@ class MyCluster(Cluster):
         self.global_settings = global_settings
         
     def start(self):
+        logging.getLogger().setLevel(self.config.get('logLevel', 'INFO'))
+
         # retrieve the cluster info from GKE
         # this will fail if the cluster doesn't exist, but the API message is enough
         clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])
