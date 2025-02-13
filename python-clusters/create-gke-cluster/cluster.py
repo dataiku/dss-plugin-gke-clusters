@@ -8,7 +8,7 @@ from dku_google.clusters import Clusters
 from dku_google.gcloud import create_kube_config_file
 from dku_kube.kubeconfig import merge_or_write_config
 from dku_kube.role import create_admin_binding
-from dku_kube.nvidia_utils import create_installer_daemonset
+from dku_kube.nvidia_utils import create_installer_daemonset_if_needed
 from dku_utils.cluster import make_overrides, get_cluster_from_connection_info
 from dku_utils.access import _has_not_blank_property
 
@@ -49,6 +49,8 @@ class MyCluster(Cluster):
                                                  self.config.get("podIpRange", ""),
                                                  self.config.get("svcIpRange", ""))
         cluster_builder.with_labels(self.config.get("clusterLabels", {}))
+        has_gpu = False
+
         if not is_autopilot:
             cluster_builder.with_http_load_balancing(self.config.get("httpLoadBalancing", False))
             if is_regional:
@@ -71,6 +73,8 @@ class MyCluster(Cluster):
                 node_pool_builder.with_nodepool_gcp_labels(node_pool.get('nodepoolGCPLabels', {}), cluster_builder.labels)
                 node_pool_builder.with_nodepool_tags(node_pool.get('networkTags', []))
                 node_pool_builder.build()
+
+                has_gpu |= node_pool.get('withGpu', False)
         cluster_builder.with_settings_valve(self.config.get("creationSettingsValve", None))
         
         start_op = cluster_builder.build()
@@ -93,8 +97,8 @@ class MyCluster(Cluster):
         create_admin_binding(self.config.get("userName", None), kube_config_path)
         
         # Launch NVIDIA driver installer daemonset (will only apply on tainted gpu nodes)
-        if not is_autopilot: # GPUs are not supported on autopilot (says the GKE doc)
-            create_installer_daemonset(kube_config_path=kube_config_path) 
+        if not is_autopilot and has_gpu: # GPUs are not supported on autopilot (says the GKE doc)
+            create_installer_daemonset_if_needed(kube_config_path=kube_config_path)
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
         overrides = make_overrides(kube_config_path)
