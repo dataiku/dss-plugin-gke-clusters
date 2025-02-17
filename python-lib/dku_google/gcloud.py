@@ -128,7 +128,7 @@ def get_instance_service_account():
     return instance_active_sa
 
 
-def create_kube_config_file(project_id, cluster_id, is_cluster_regional, region_or_zone, kube_config_path):
+def create_kube_config_file(project_id, cluster_id, is_cluster_regional, region_or_zone, kube_config_path, is_dns_endpoint=False):
     """
     Delegate the creation of the kube config file to gke-gcloud-auth-plugin
     Starting with Kubernetes 1.26, the authentication to execute kubectl commands on Google clusters
@@ -159,6 +159,9 @@ def create_kube_config_file(project_id, cluster_id, is_cluster_regional, region_
     if project_id is not None and len(project_id) > 0:
         cmd.append("--project")
         cmd.append(project_id)
+
+    if is_dns_endpoint:
+        cmd.append("--dns-endpoint")
         
     if is_cluster_regional:
         cmd.append("--region")
