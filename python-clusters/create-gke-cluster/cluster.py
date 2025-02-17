@@ -21,6 +21,8 @@ class MyCluster(Cluster):
         self.global_settings = global_settings
         
     def start(self):
+        logging.getLogger().setLevel(self.config.get('logLevel', 'INFO'))
+
         # build the create cluster request
         clusters = get_cluster_from_connection_info(self.config['connectionInfo'], self.plugin_config['connectionInfo'])
         

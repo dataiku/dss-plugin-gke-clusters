@@ -34,6 +34,39 @@
             "description": "If not the same as the gcloud user",
             "type": "STRING",
             "mandatory" : false
+        },
+        {
+            "name": "logLevel",
+            "label": "Log level",
+            "type": "SELECT",
+            "selectChoices": [
+                {
+                    "value": "NOTSET",
+                    "label": "NotSet"
+                },
+                {
+                    "value": "DEBUG",
+                    "label": "Debug"
+                },
+                {
+                    "value": "INFO",
+                    "label": "Info"
+                },
+                {
+                    "value": "WARNING",
+                    "label": "Warning"
+                },
+                {
+                    "value": "ERROR",
+                    "label": "Error"
+                },
+                {
+                    "value": "CRITICAL",
+                    "label": "Critical"
+                }
+            ],
+            "mandatory": false,
+            "defaultValue": "INFO"
         }
     ]
 }
