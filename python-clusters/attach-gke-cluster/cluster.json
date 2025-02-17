@@ -31,7 +31,7 @@
         {
             "name": "isDnsEndpoint",
             "label": "Use DNS Endpoint",
-            "description": "Force DNS Endpoint connection the ControlPlane. DNS Endpoint must have been configured already. If not selected, will use IP address. DNS Endpoint info here https://cloud.google.com/kubernetes-engine/docs/how-to/latest/network-isolation#dns-based-endpoint",
+            "description": "Force DNS Endpoint connection to the ControlPlane. DNS Endpoint must have been configured already. If not selected, will use IP address. DNS Endpoint info here https://cloud.google.com/kubernetes-engine/docs/how-to/latest/network-isolation#dns-based-endpoint",
             "type": "BOOLEAN",
             "defaultValue" : false
         },
