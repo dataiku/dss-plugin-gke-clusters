@@ -120,6 +120,10 @@ class MyCluster(Cluster):
 
     @staticmethod
     def resolve_partner_google_urn():
-        license_file = open("/data/dataiku/dss_data/config/license.json")
-        _license = json.load(license_file)
-        return _license["content"]["properties"].get("partner.google.urn", "isol_psn_0014m00001h39q5qai_dataiku")
+        full_path = os.path.join(os.environ.get("DIP_HOME"), "config", "license.json")
+        try:
+            with open(full_path) as license_file:
+                _license = json.load(license_file)
+                return _license["content"]["properties"].get("partner.google.urn", "isol_psn_0014m00001h39q5qai_dataiku")
+        except Exception:
+            return "isol_psn_0014m00001h39q5qai_dataiku"
