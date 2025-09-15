@@ -124,6 +124,6 @@ class MyCluster(Cluster):
         try:
             with open(full_path) as license_file:
                 _license = json.load(license_file)
-                return _license["content"]["properties"].get("partner.google.urn", "isol_psn_0014m00001h39q5qai_dataiku")
+                return _license["content"]["properties"]["partner.google.urn"]
         except Exception:
             return "isol_psn_0014m00001h39q5qai_dataiku"
