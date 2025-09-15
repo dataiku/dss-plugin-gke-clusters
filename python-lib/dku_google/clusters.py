@@ -32,6 +32,7 @@ class NodePoolBuilder(object):
         self.nodepool_taints = []
         self.nodepool_gcp_labels = {}
         self.nodepool_tags = []
+        self.partner_google_urn = None
  
     def with_name(self, name):
         self.name = name
@@ -144,6 +145,10 @@ class NodePoolBuilder(object):
                 self.nodepool_tags.append(tag)
         return self
 
+    def with_partner_google_urn(self, partner_google_urn):
+        self.partner_google_urn = partner_google_urn
+        return self
+
     def build(self):
         node_pool = {'config':{}}
         node_pool['name'] = self.name if self.name is not None else 'node-pool'
@@ -176,7 +181,11 @@ class NodePoolBuilder(object):
                                             "minNodeCount":self.min_node_count if self.min_node_count is not None else node_pool['initialNodeCount'],
                                             "maxNodeCount":self.max_node_count if self.max_node_count is not None else node_pool['initialNodeCount']
                                         }
+
         node_pool["config"]["labels"] = self.nodepool_labels
+        if self.partner_google_urn:
+            node_pool["config"]["labels"]["goog-partner-solution"] = self.partner_google_urn
+
         node_pool["config"]["taints"] = self.nodepool_taints
         node_pool["config"]["resourceLabels"] = self.nodepool_gcp_labels
         node_pool["config"]["tags"] = self.nodepool_tags
