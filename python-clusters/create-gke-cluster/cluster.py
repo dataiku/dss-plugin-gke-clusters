@@ -72,7 +72,6 @@ class MyCluster(Cluster):
                 node_pool_builder.with_gpu(node_pool.get('withGpu', False), node_pool.get('gpuType', None), node_pool.get('gpuCount', 1))
                 node_pool_builder.with_spot_vms(node_pool.get('useSpotVms', False))
                 node_pool_builder.with_nodepool_labels(node_pool.get('nodepoolLabels', {}))
-                node_pool_builder.with_partner_google_urn(MyCluster.resolve_partner_google_urn())
                 node_pool_builder.with_nodepool_taints(node_pool.get('nodepoolTaints', []))
                 node_pool_builder.with_nodepool_gcp_labels(node_pool.get('nodepoolGCPLabels', {}), cluster_builder.labels)
                 node_pool_builder.with_nodepool_tags(node_pool.get('networkTags', []))
