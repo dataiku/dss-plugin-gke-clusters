@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.4.1 - Feature and bugfix release
+- Add DNS endpoint support when attaching clusters
+- Improve Nvidia driver installation support
+
 ## Version 1.4.0 - Feature and bugfix release
 - Add support for release channels on standard clusters
 - Add support for GCP labels on nodepools
