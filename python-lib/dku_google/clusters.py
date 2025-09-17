@@ -213,7 +213,8 @@ class ClusterBuilder(object):
         self.release_channel = 'STABLE'
         self.release_channel_enrollment = True
         self.settings_valve = None
-       
+        self.partner_google_urn = None
+
     def with_name(self, name):
         self.name = name
         return self
@@ -290,6 +291,10 @@ class ClusterBuilder(object):
         self.settings_valve = _default_if_blank(settings_valve, None)
         return self
 
+    def with_partner_google_urn(self, partner_google_urn):
+        self.partner_google_urn = partner_google_urn
+        return self
+
     def _auto_name(self):
         return 'dku-cluster-' + ''.join([random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for i in range(0, 8)])
     
@@ -299,10 +304,13 @@ class ClusterBuilder(object):
         cluster_node_count = self.node_count
         cluster_network = self.network
         cluster_subnetwork = self.subnetwork
-        cluster_labels = self.labels
         cluster_pod_ip_range = self.pod_ip_range
         cluster_svc_ip_range = self.svc_ip_range
-        
+
+        cluster_labels = self.labels
+        if self.partner_google_urn:
+            cluster_labels["goog-partner-solution"] = self.partner_google_urn
+
         if _is_none_or_blank(cluster_name):
             cluster_name = self._auto_name()
         if cluster_node_count is None:

@@ -51,6 +51,7 @@ class MyCluster(Cluster):
                                                  self.config.get("podIpRange", ""),
                                                  self.config.get("svcIpRange", ""))
         cluster_builder.with_labels(self.config.get("clusterLabels", {}))
+        cluster_builder.with_partner_google_urn(MyCluster.resolve_partner_google_urn())
         has_gpu = False
 
         if not is_autopilot:
@@ -116,3 +117,12 @@ class MyCluster(Cluster):
         stop_op.wait_done()
         logging.info("Cluster stopped")
 
+    @staticmethod
+    def resolve_partner_google_urn():
+        full_path = os.path.join(os.environ.get("DIP_HOME"), "config", "license.json")
+        try:
+            with open(full_path) as license_file:
+                _license = json.load(license_file)
+                return _license["content"]["properties"]["partner.google.urn"]
+        except Exception:
+            return "isol_psn_0014m00001h39q5qai_dataiku"
