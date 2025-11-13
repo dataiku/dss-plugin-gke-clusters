@@ -35,7 +35,7 @@ class MyCluster(Cluster):
         is_dns_endpoint = self.config.get('isDnsEndpoint', False)
         create_kube_config_file(clusters.project_id, cluster.name, is_regional, region_or_zone, kube_config_path, is_dns_endpoint)
                 
-        # add the admin role so that we can do the managed kubernetes stuff for spark
+        # add the admin role so that we can do the managed kubernetes stuff for Spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)
         
         # collect and prepare the overrides so that DSS can know where and how to use the cluster
