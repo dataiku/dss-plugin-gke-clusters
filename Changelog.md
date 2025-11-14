@@ -1,5 +1,8 @@
 # Changelog
 
+## Next version 
+- Support for enabling Gateway API
+
 ## Version 1.4.1 - Feature and bugfix release
 - Add DNS endpoint support when attaching clusters
 - Improve Nvidia driver installation support
