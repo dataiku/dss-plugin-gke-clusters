@@ -20,7 +20,7 @@
             "label": "Machine type",
             "description": "GCE machine type for the nodes. See GCP documentation for available machine types.",
             "type": "STRING",
-            "defaultValue":  "n1-highmem-8",
+            "defaultValue":  "n2-highmem-8",
             "mandatory": false
         },
         {
