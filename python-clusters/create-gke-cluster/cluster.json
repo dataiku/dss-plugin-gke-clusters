@@ -132,6 +132,12 @@
             "visibilityCondition": "model.isVpcNative"
         },
         {
+            "name": "enableGatewayAPI",
+            "label": "Enable Gateway API",
+            "type": "BOOLEAN",
+            "defaultValue" : false
+        },
+        {
             "name": "s-nodes",
             "type":"SEPARATOR",
             "label": "Cluster nodes",

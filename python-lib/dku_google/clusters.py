@@ -214,6 +214,7 @@ class ClusterBuilder(object):
         self.release_channel_enrollment = True
         self.settings_valve = None
         self.partner_google_urn = None
+        self.gateway_api_enabled = False
 
     def with_name(self, name):
         self.name = name
@@ -229,6 +230,10 @@ class ClusterBuilder(object):
     
     def with_release_channel(self, release_channel):
         self.release_channel = release_channel
+        return self
+
+    def with_gateway_api(self, enable):
+        self.gateway_api_enabled = enable
         return self
 
     def with_release_channel_enrollment(self, release_channel_enrollment):
@@ -321,10 +326,10 @@ class ClusterBuilder(object):
                 "name": cluster_name,
                 "initialClusterVersion": cluster_version,
                 "description": "Created from plugin",
-                "network": cluster_network,
-                "subnetwork": cluster_subnetwork,
                 "resourceLabels": cluster_labels,
-                "nodePools": []
+                "nodePools": [],
+                "network": cluster_network,
+                "subnetwork": cluster_subnetwork
             }
         }
         if self.is_regional:
@@ -333,6 +338,9 @@ class ClusterBuilder(object):
                 create_cluster_request_body["cluster"]["locations"] = self.locations
         else:
             create_cluster_request_body["parent"] = self.clusters.get_zonal_location()
+            
+        if self.gateway_api_enabled:
+            create_cluster_request_body["cluster"]["networkConfig"] = {"gatewayApiConfig": {"channel":"CHANNEL_STANDARD"}}
             
         if self.is_vpc_native:
             ip_allocation_policy = {
