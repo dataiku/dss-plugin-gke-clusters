@@ -46,6 +46,9 @@ class MyCluster(Cluster):
         cluster_builder.with_network(self.config.get("inheritFromDSSHost", True),
                                      self.config.get("network", "").strip(),
                                      self.config.get("subNetwork", "").strip())
+        
+        cluster_builder.with_gateway_api(self.config.get("enableGatewayAPI", False))
+            
         vpc_native = is_autopilot or self.config.get("isVpcNative", None)
         cluster_builder.with_vpc_native_settings(vpc_native,
                                                  self.config.get("podIpRange", ""),
