@@ -1,7 +1,8 @@
 # Changelog
 
-## Next version 
+## Version 1.5.0 - Feature release
 - Support for enabling Gateway API
+- Change default machine type for cluster nodes
 
 ## Version 1.4.1 - Feature and bugfix release
 - Add DNS endpoint support when attaching clusters
