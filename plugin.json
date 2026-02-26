@@ -8,7 +8,7 @@
         "icon": "icon-gcp-kubernetes-engine icon-cloud",
         "licenseInfo": "Apache Software License",
         "url": "https://github.com/dataiku/dss-plugin-gke-clusters",
-        "tags": ["Cloud", "Google"],
+        "tags": ["Infra", "Google"],
         "supportLevel": "TIER2_SUPPORT"
     }
 }
