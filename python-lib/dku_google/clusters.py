@@ -10,6 +10,14 @@ import logging
 
 from .operations import Operation
 
+GCE_METADATA_MTLS_MODE_ENV = "GCE_METADATA_MTLS_MODE"
+
+
+def _configure_google_auth_env():
+    # Only disable metadata-server mTLS. This avoids forcing broader mTLS
+    # behavior changes for other Google API clients in the same process.
+    os.environ.setdefault(GCE_METADATA_MTLS_MODE_ENV, "none")
+
 class NodePoolBuilder(object):
     def __init__(self, cluster_builder):
         self.cluster_builder = cluster_builder
@@ -576,6 +584,7 @@ class Cluster(object):
 class Clusters(object):
     def __init__(self, project_id, zone, region, credentials=None):
         logging.info("Connect using project_id=%s zone=%s region=%s credentials=%s" % (project_id, zone, region, credentials))
+        _configure_google_auth_env()
         instance_info = get_instance_info()
         if _is_none_or_blank(project_id):
             default_project = instance_info["project"]
