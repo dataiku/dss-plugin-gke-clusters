@@ -2,6 +2,7 @@ from dataiku.runnables import Runnable
 import dataiku
 import json, logging
 from dku_google.clusters import Clusters
+from dku_google.serialize import to_jsonable
 from dku_utils.cluster import get_cluster_from_dss_cluster
 
 class MyRunnable(Runnable):
@@ -30,8 +31,8 @@ class MyRunnable(Runnable):
         for node_pool_id in node_pool_ids:
             node_pool = cluster.get_node_pool(node_pool_id)
             
-            node_pool_info = node_pool.get_info()
-            node_pool_info["instanceGroups"] = node_pool.get_instance_groups_info()
+            node_pool_info = to_jsonable(node_pool.get_info())
+            node_pool_info["instanceGroups"] = to_jsonable(node_pool.get_instance_groups_info())
             
             node_pools.append('<h5>%s</h5><pre class="debug">%s</pre>' % (node_pool_id, json.dumps(node_pool_info, indent=2)))
         

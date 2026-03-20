@@ -2,6 +2,7 @@ from dataiku.runnables import Runnable
 import dataiku
 import json, logging
 from dku_google.clusters import Clusters
+from dku_google.serialize import to_jsonable
 from dku_utils.cluster import get_cluster_from_dss_cluster
 
 class MyRunnable(Runnable):
@@ -43,4 +44,4 @@ class MyRunnable(Runnable):
             logging.info("Waiting for cluster resize")
             resize_op.wait_done()
             logging.info("Cluster resized")
-            return '<pre class="debug">%s</pre>' % json.dumps(node_pool.get_info(), indent=2)
+            return '<pre class="debug">%s</pre>' % json.dumps(to_jsonable(node_pool.get_info()), indent=2)

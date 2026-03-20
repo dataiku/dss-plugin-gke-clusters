@@ -6,6 +6,7 @@ from dataiku.cluster import Cluster
 from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
 from dku_google.gcloud import create_kube_config_file
+from dku_google.serialize import to_jsonable
 from dku_kube.kubeconfig import merge_or_write_config
 from dku_kube.role import create_admin_binding
 from dku_kube.nvidia_utils import create_installer_daemonset_if_needed
@@ -92,7 +93,7 @@ class MyCluster(Cluster):
         
         # cluster is ready, fetch its info from GKE
         cluster = clusters.get_cluster(self.cluster_name, 'regional' if is_regional else 'zonal')
-        cluster_info = cluster.get_info()
+        cluster_info = to_jsonable(cluster.get_info())
 
         # delegate the creation of the kube config file to gcloud to use the client go auth plugin
         kube_config_path = os.path.join(os.getcwd(), 'kube_config')
