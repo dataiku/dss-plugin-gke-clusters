@@ -61,12 +61,19 @@ def get_cluster_from_dss_cluster(dss_cluster_id):
     cluster_name = cluster_def["name"]
 
     self_link = cluster_def.get('selfLink', None)
-    if self_link is None:
-        raise Exception("No selflink found, cluster is probably not running")
-    if re.match('https://[^/]+/v1/projects/[^/]+/zones/[^/]+/clusters/[^/]+', self_link):
+    if self_link is not None and re.match('https://[^/]+/v1/projects/[^/]+/zones/[^/]+/clusters/[^/]+', self_link):
         definition_level = 'zonal'
-    else:
+    elif self_link is not None:
         definition_level = 'regional'
+    else:
+        location = cluster_def.get("location", None)
+        connection_info = dss_cluster_config['config']['connectionInfo']
+        if location == connection_info.get("zone", None):
+            definition_level = 'zonal'
+        elif location == connection_info.get("region", None):
+            definition_level = 'regional'
+        else:
+            raise Exception("No selflink or recognizable location found, cluster is probably not running")
         
     cluster = clusters.get_cluster(cluster_name, definition_level)
 

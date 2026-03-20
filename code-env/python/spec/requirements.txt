@@ -1,8 +1,6 @@
-google-auth-httplib2 
 google-auth 
-google-cloud
-google-api-python-client
+google-cloud-compute
+google-cloud-container
 googleapis-common-protos
-oauth2client
 PyYAML
 ipaddress==1.0.23

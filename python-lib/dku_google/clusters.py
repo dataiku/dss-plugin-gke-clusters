@@ -1,7 +1,10 @@
-from googleapiclient import discovery
+import google.auth
+from google.cloud import compute_v1
+from google.cloud import container_v1
+from google.auth.credentials import with_scopes_if_required
+from google.auth.transport.requests import AuthorizedSession
 from six import text_type
-from googleapiclient.errors import HttpError
-from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_instance_info
+from dku_google.gcloud import get_instance_info
 from dku_google.gcloud import get_instance_network, get_instance_service_account
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
 
@@ -9,6 +12,10 @@ import os, sys, json, re, random
 import logging
 
 from .operations import Operation
+
+
+CONTAINER_API_ROOT = "https://container.googleapis.com/v1/"
+GCP_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 
 class NodePoolBuilder(object):
     def __init__(self, cluster_builder):
@@ -389,25 +396,14 @@ class ClusterBuilder(object):
             create_cluster_request_body["cluster"] = _merge_objects(create_cluster_request_body["cluster"], valve)
                 
         logging.info("Requesting cluster %s" % json.dumps(create_cluster_request_body, indent=2))
-                
-        if self.is_regional:
-            location_params = {"parent" : self.clusters.get_regional_location()}
-            request = self.clusters.get_regional_clusters_api().create(body=create_cluster_request_body, **location_params)
 
-            try:
-                response = request.execute()
-                return Operation(response, self.clusters.get_regional_operations_api(), self.clusters.get_regional_location_params())
-            except HttpError as e:
-                raise Exception("Failed to create cluster : %s" % str(e))
-        else:
-            location_params = self.clusters.get_zonal_location_params()
-            request = self.clusters.get_zonal_clusters_api().create(body=create_cluster_request_body, **location_params)
-
-            try:
-                response = request.execute()
-                return Operation(response, self.clusters.get_zonal_operations_api(), self.clusters.get_zonal_location_params())
-            except HttpError as e:
-                raise Exception("Failed to create cluster : %s" % str(e))
+        try:
+            return self.clusters.create_cluster(
+                create_cluster_request_body["parent"],
+                create_cluster_request_body["cluster"],
+            )
+        except Exception as e:
+            raise Exception("Failed to create cluster : %s" % str(e))
     
 class NodePool(object):
     def __init__(self, name, cluster):
@@ -415,25 +411,15 @@ class NodePool(object):
         self.cluster = cluster
         
     def get_location_params(self):
-        # the zonal and regional APIs don't have the same args, and notably the zonal API
-        # is a bit braindead in that if has args that are both deprecated and required
-        # despite their replacement arg being possible...
-        if self.cluster.definition_level == 'zonal':
-            location_params = self.cluster.get_location_params()
-            location_params['nodePoolId'] = self.name
-            return location_params
-        else:
-            return {'name':"%s/nodePools/%s" % (self.cluster.get_location(), self.name)}
+        return {'name':"%s/nodePools/%s" % (self.cluster.get_location(), self.name)}
         
     def get_info(self):
-        request = self.cluster.get_node_pools_api().get(**self.get_location_params())
-        response = request.execute()
-        return response
+        return self.cluster.clusters.service.get_node_pool(**self.get_location_params())
     
     def get_instance_groups_info(self):
         node_pool_info = self.get_info()
         instance_groups = []
-        for instance_group_url in node_pool_info.get("instanceGroupUrls", []):
+        for instance_group_url in getattr(node_pool_info, "instance_group_urls", []):
             # the zone should be fetched from the url, since regional clusters will have
             # instance groups in several zones
             m = re.match("^.*/([^/]+)/[^/]+/([^/]+)", instance_group_url)
@@ -445,28 +431,30 @@ class NodePool(object):
             # put the right zone in (might not be the cluster's)
             clean_location_params["zone"] = instance_group_zone
             logging.info("get_instance_groups_api %s  %s" % (instance_group_name, str(clean_location_params)))
-            request = self.cluster.get_instance_groups_api().get(instanceGroup=instance_group_name, **clean_location_params)
-            instance_groups.append(request.execute())
+            response = self.cluster.get_instance_groups_api().get(
+                instance_group=instance_group_name,
+                **clean_location_params
+            )
+            instance_groups.append(response)
         return instance_groups
         
     def resize(self, num_nodes):
-        resize_cluster_request_body = {
-            "nodeCount" : num_nodes
-        }
-
-        request = self.cluster.get_node_pools_api().setSize(body=resize_cluster_request_body, **self.get_location_params())
         try:
-            response = request.execute()
-            return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
-        except HttpError as e:
+            response = self.cluster.clusters.service.set_node_pool_size(
+                request=container_v1.SetNodePoolSizeRequest(
+                    name=self.get_location_params()["name"],
+                    node_count=num_nodes,
+                )
+            )
+            return Operation(response, self.cluster.clusters.service, self.cluster.get_parent_location())
+        except Exception as e:
             raise Exception("Failed to resize node pool : %s" % str(e))
         
     def delete(self):
-        request = self.cluster.get_node_pools_api().delete(**self.get_location_params())
         try:
-            response = request.execute()
-            return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
-        except HttpError as e:
+            response = self.cluster.clusters.service.delete_node_pool(**self.get_location_params())
+            return Operation(response, self.cluster.clusters.service, self.cluster.get_parent_location())
+        except Exception as e:
             raise Exception("Failed to delete node pool : %s" % str(e))
         
     def get_node_pool_builder(self):
@@ -479,17 +467,13 @@ class NodePool(object):
         }
         
         logging.info("Requesting node pool %s" % json.dumps(create_node_pool_request_body, indent=2))
-                
-        parent_location_params = self.cluster.get_location_params()
-        # it's a creation, so the locations are passed as 'parent' and not 'name' (for regional clusters)
-        if 'name' in parent_location_params:
-            parent_location_params = {'parent':parent_location_params['name']}
-        request = self.cluster.get_node_pools_api().create(body=create_node_pool_request_body, **parent_location_params)
         
         try:
-            response = request.execute()
-            return Operation(response, self.cluster.get_operations_api(), self.cluster.get_parent_location_params())
-        except HttpError as e:
+            return self.cluster.clusters.create_node_pool(
+                create_node_pool_request_body["parent"],
+                create_node_pool_request_body["nodePool"],
+            )
+        except Exception as e:
             raise Exception("Failed to create node pool : %s" % str(e))
 
 class Cluster(object):
@@ -510,64 +494,38 @@ class Cluster(object):
             return self.clusters.get_zonal_location_params()
         else:
             return self.clusters.get_regional_location_params()
+
+    def get_parent_location(self):
+        if self.definition_level == 'zonal':
+            return self.clusters.get_zonal_location()
+        else:
+            return self.clusters.get_regional_location()
             
     def get_location_params(self):
-        if self.definition_level == 'zonal':
-            params = self.get_parent_location_params().copy()
-            params["clusterId"] = self.name
-            return params
-        else:
-            return {"name":self.get_location()}
-    
-    def get_clusters_api(self):
-        if self.definition_level == 'zonal':
-            return self.clusters.get_zonal_clusters_api()
-        else:
-            return self.clusters.get_regional_clusters_api()
-    
-    def get_node_pools_api(self):
-        return self.get_clusters_api().nodePools()
-    
-    def get_operations_api(self):
-        if self.definition_level == 'zonal':
-            return self.clusters.get_zonal_operations_api()
-        else:
-            return self.clusters.get_regional_operations_api()
+        return {"name":self.get_location()}
                     
     def get_instance_groups_api(self):
         return self.clusters.get_instance_groups_api()
         
     def get_info(self):
-        location_params = self.get_location_params()
-        request = self.get_clusters_api().get(**location_params)
-        response = request.execute()
-        return response
+        return self.clusters.service.get_cluster(**self.get_location_params())
 
     def stop(self):
-        location_params = self.get_location_params()
-        request = self.get_clusters_api().delete(**location_params)
-        
         try:
-            response = request.execute()
-            return Operation(response, self.get_operations_api(), self.get_parent_location_params())
-        except HttpError as e:
+            response = self.clusters.service.delete_cluster(**self.get_location_params())
+            return Operation(response, self.clusters.service, self.get_parent_location())
+        except Exception as e:
             raise Exception("Failed to stop cluster : %s" % str(e))
             
     def get_node_pools(self):
-        location_params = self.get_location_params()
-        if 'name' in location_params:
-            # for the list() call, the cluster is not the name, but the parent (logically)
-            location_params['parent'] = location_params['name']
-            del location_params['name']
-        request = self.get_node_pools_api().list(**location_params)
-        
         try:
-            response = request.execute()
+            response = self.clusters.service.list_node_pools(parent=self.get_location())
+            node_pool_items = getattr(response, "node_pools", response)
             node_pools = []
-            for elem in response.get("nodePools", []):
-                node_pools.append(NodePool(elem["name"], self))
+            for elem in node_pool_items:
+                node_pools.append(NodePool(elem.name, self))
             return node_pools
-        except HttpError as e:
+        except Exception as e:
             raise Exception("Failed to get node pools : %s" % str(e))
         
     def get_node_pool(self, node_pool_id):
@@ -595,20 +553,18 @@ class Clusters(object):
             self.region = default_region
         else:
             self.region = region
-        self.service = discovery.build('container', 'v1', credentials=credentials, cache_discovery=False)
-        self.compute = discovery.build('compute', 'v1', credentials=credentials, cache_discovery=False)
+        if credentials is None:
+            credentials, _ = google.auth.default(scopes=GCP_SCOPES)
+        self.credentials = with_scopes_if_required(credentials, GCP_SCOPES)
+        self.service = container_v1.ClusterManagerClient(credentials=self.credentials)
+        self.compute = compute_v1.InstanceGroupsClient(credentials=self.credentials)
+        self.session = AuthorizedSession(self.credentials)
         
     def get_zonal_location(self):
         return "projects/%s/locations/%s" % (self.project_id, self.zone)
         
     def get_zonal_location_params(self):
         return {"projectId":self.project_id, "zone":self.zone}
-    
-    def get_zonal_operations_api(self):
-        return self.service.projects().zones().operations()
-    
-    def get_zonal_clusters_api(self):
-        return self.service.projects().zones().clusters()
         
     def get_regional_location(self):
         return "projects/%s/locations/%s" % (self.project_id, self.region)
@@ -616,14 +572,41 @@ class Clusters(object):
     def get_regional_location_params(self):
         return {"projectId":self.project_id, "region":self.region}
     
-    def get_regional_operations_api(self):
-        return self.service.projects().locations().operations()
-    
-    def get_regional_clusters_api(self):
-        return self.service.projects().locations().clusters()
-    
     def get_instance_groups_api(self):
-        return self.compute.instanceGroups()
+        return self.compute
+
+    def _container_api_url(self, path):
+        return "%s%s" % (CONTAINER_API_ROOT, path.lstrip("/"))
+
+    def _container_api_request(self, method, path, body=None):
+        response = self.session.request(
+            method=method,
+            url=self._container_api_url(path),
+            json=body,
+            timeout=120,
+        )
+        if not response.ok:
+            raise Exception("Container API %s %s failed (%s): %s" % (method, path, response.status_code, response.text))
+        if not response.content:
+            return None
+        return response.json()
+
+    def create_cluster(self, parent_location, cluster_payload):
+        operation = self._container_api_request(
+            "POST",
+            "%s/clusters" % parent_location,
+            body={"cluster": cluster_payload},
+        )
+        return Operation(operation, self.service, parent_location)
+
+    def create_node_pool(self, parent_location, node_pool_payload):
+        operation_parent = parent_location.rsplit("/clusters/", 1)[0]
+        operation = self._container_api_request(
+            "POST",
+            "%s/nodePools" % parent_location,
+            body={"nodePool": node_pool_payload},
+        )
+        return Operation(operation, self.service, operation_parent)
     
     def new_cluster_builder(self):
         return ClusterBuilder(self)

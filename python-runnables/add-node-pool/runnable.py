@@ -1,6 +1,7 @@
 import dataiku
 import json, logging, os
 from dku_google.clusters import Clusters
+from dku_google.serialize import to_jsonable
 from dku_utils.cluster import get_cluster_from_dss_cluster
 from dku_kube.nvidia_utils import create_installer_daemonset_if_needed
 from dataiku.runnables import Runnable
@@ -65,4 +66,4 @@ class MyRunnable(Runnable):
             create_installer_daemonset_if_needed(kube_config_path=kube_config_path)
 
 
-        return '<pre class="debug">%s</pre>' % json.dumps(node_pool.get_info(), indent=2)
+        return '<pre class="debug">%s</pre>' % json.dumps(to_jsonable(node_pool.get_info()), indent=2)
