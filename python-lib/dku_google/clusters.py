@@ -16,6 +16,15 @@ from .operations import Operation
 
 CONTAINER_API_ROOT = "https://container.googleapis.com/v1/"
 GCP_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+GCE_METADATA_MTLS_MODE_ENV = "GCE_METADATA_MTLS_MODE"
+GOOGLE_API_USE_CLIENT_CERTIFICATE_ENV = "GOOGLE_API_USE_CLIENT_CERTIFICATE"
+
+
+def _configure_google_auth_env():
+    # The plugin does not use metadata-server mTLS, and forcing it on breaks
+    # default credentials on hosts where the metadata HTTPS cert chain is absent.
+    os.environ.setdefault(GCE_METADATA_MTLS_MODE_ENV, "none")
+    os.environ.setdefault(GOOGLE_API_USE_CLIENT_CERTIFICATE_ENV, "false")
 
 class NodePoolBuilder(object):
     def __init__(self, cluster_builder):
@@ -534,6 +543,7 @@ class Cluster(object):
 class Clusters(object):
     def __init__(self, project_id, zone, region, credentials=None):
         logging.info("Connect using project_id=%s zone=%s region=%s credentials=%s" % (project_id, zone, region, credentials))
+        _configure_google_auth_env()
         instance_info = get_instance_info()
         if _is_none_or_blank(project_id):
             default_project = instance_info["project"]
