@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 1.5.1 - Bugfix release
+- Fix an issue when starting a GKE cluster
+
 ## Version 1.5.0 - Feature release
 - Support for enabling Gateway API
 - Change default machine type for cluster nodes
