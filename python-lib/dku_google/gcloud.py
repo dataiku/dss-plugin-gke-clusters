@@ -1,8 +1,10 @@
 import os, sys, json, yaml, subprocess, logging
 import socket
 import requests
+import dataiku
 
 from dku_utils.access import _safe_get_value
+from dku_google.auth import get_dss_proxy
 
 GCLOUD_INFO = None
 METADATA_SERVER_BASE_URL="http://metadata/computeMetadata/v1/"
@@ -47,19 +49,24 @@ def _run_cmd(cmd=None, **kwargs):
 
     cmd_pretty = ' '.join(cmd)
     logging.info("Running CMD: {}".format(cmd_pretty))
-    p = subprocess.Popen(cmd,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         universal_newlines=True,
-                         **kwargs)
-    out, err = p.communicate()
-    rv = p.wait()
-    if rv != 0:
-        raise Exception(err)
+    env = kwargs.get('env')
+    with get_dss_proxy(env):
+        for k in os.environ:
+            if 'proxy' in k.lower():
+                logging.info("env %s = %s" % (k, os.environ[k]))
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             universal_newlines=True,
+                             **kwargs)
+        out, err = p.communicate()
+        rv = p.wait()
+        if rv != 0:
+            raise Exception(err)
 
-    cmd_out = out.rstrip()
-    logging.debug("'{}' output: {}".format(cmd_pretty, cmd_out))
-    return cmd_out
+        cmd_out = out.rstrip()
+        logging.debug("'{}' output: {}".format(cmd_pretty, cmd_out))
+        return cmd_out
 
 
 def get_instance_info():

@@ -1,12 +1,16 @@
 from googleapiclient import discovery
 from six import text_type
 from googleapiclient.errors import HttpError
+from dku_google.auth import get_httplib2_proxyinfo
 from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_instance_info
 from dku_google.gcloud import get_instance_network, get_instance_service_account
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
 
 import os, sys, json, re, random
 import logging
+import dataiku
+import httplib2
+import google_auth_httplib2
 
 from .operations import Operation
 
@@ -604,8 +608,22 @@ class Clusters(object):
             self.region = default_region
         else:
             self.region = region
-        self.service = discovery.build('container', 'v1', credentials=credentials, cache_discovery=False)
-        self.compute = discovery.build('compute', 'v1', credentials=credentials, cache_discovery=False)
+
+        proxy_info = get_httplib2_proxyinfo()
+        if proxy_info is not None:
+            if credentials is None:
+                # cheat: make the service discovery build it, so that you have the right scopes
+                logging.info("Make default credentials")
+                temp_service = discovery.build('container', 'v1', credentials=None, cache_discovery=False, http=None)
+                credentials = temp_service._http.credentials 
+                
+            authorized_http = google_auth_httplib2.AuthorizedHttp(credentials=credentials, http=httplib2.Http(proxy_info=proxy_info))
+            credentials = None # http and credentials are mutually exclusive options
+        else:
+            authorized_http = None
+
+        self.service = discovery.build('container', 'v1', credentials=credentials, cache_discovery=False, http=authorized_http)
+        self.compute = discovery.build('compute', 'v1', credentials=credentials, cache_discovery=False, http=authorized_http)
         
     def get_zonal_location(self):
         return "projects/%s/locations/%s" % (self.project_id, self.zone)
