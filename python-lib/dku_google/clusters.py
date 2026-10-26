@@ -4,6 +4,7 @@ from googleapiclient.errors import HttpError
 from dku_google.gcloud import get_sdk_root, get_access_token_and_expiry, get_instance_info
 from dku_google.gcloud import get_instance_network, get_instance_service_account
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank, _default_if_blank, _merge_objects
+from dku_utils.proxy import configure_proxy_environment
 
 import os, sys, json, re, random
 import logging
@@ -584,6 +585,7 @@ class Cluster(object):
 class Clusters(object):
     def __init__(self, project_id, zone, region, credentials=None):
         logging.info("Connect using project_id=%s zone=%s region=%s credentials=%s" % (project_id, zone, region, credentials))
+        configure_proxy_environment()
         _configure_google_auth_env()
         instance_info = get_instance_info()
         if _is_none_or_blank(project_id):
