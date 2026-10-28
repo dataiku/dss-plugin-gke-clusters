@@ -36,6 +36,13 @@
             "defaultValue" : false
         },
         {
+            "name": "bypassControlPlaneProxy",
+            "label": "Bypass proxy for the control plane",
+            "description": "Connect directly to the Kubernetes API instead of using the proxy. Enable if DSS can reach the control plane directly but the proxy cannot.",
+            "type": "BOOLEAN",
+            "defaultValue": false
+        },
+        {
             "name": "userName",
             "label": "User name",
             "description": "If not the same as the gcloud user",
