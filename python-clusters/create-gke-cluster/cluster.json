@@ -85,6 +85,13 @@
             "description": "<ul><li>For VPC-native clusters, leave IP ranges empty to let GKE automatically assign them.</li></ul>"
         },
         {
+            "name": "bypassControlPlaneProxy",
+            "label": "Bypass proxy for the control plane",
+            "description": "Bypass the proxy configured through environment variables when connecting to the Kubernetes API. Has no effect if no proxy is configured. Enable if DSS can reach the control plane directly but the proxy cannot.",
+            "type": "BOOLEAN",
+            "defaultValue": false
+        },
+        {
             "name": "inheritFromDSSHost",
             "label": "Inherit DSS host settings",
             "type": "BOOLEAN",
