@@ -6,7 +6,7 @@ from dataiku.cluster import Cluster
 from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
 from dku_google.gcloud import create_kube_config_file
-from dku_kube.kubeconfig import merge_or_write_config
+from dku_kube.kubeconfig import merge_or_write_config, configure_control_plane_proxy
 from dku_kube.role import create_admin_binding
 from dku_kube.nvidia_utils import create_installer_daemonset_if_needed
 from dku_utils.cluster import make_overrides, get_cluster_from_connection_info
@@ -98,6 +98,7 @@ class MyCluster(Cluster):
         kube_config_path = os.path.join(os.getcwd(), 'kube_config')
         region_or_zone = clusters.region if is_regional else clusters.zone
         create_kube_config_file(clusters.project_id, self.cluster_id, is_regional, region_or_zone, kube_config_path)
+        configure_control_plane_proxy(kube_config_path, self.config.get("bypassControlPlaneProxy", False))
         
         # add the admin role so that we can do the managed kubernetes stuff for spark
         create_admin_binding(self.config.get("userName", None), kube_config_path)

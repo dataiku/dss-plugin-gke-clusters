@@ -1,5 +1,57 @@
-import os, sys, json, yaml, logging
+import os, sys, json, yaml, logging, subprocess
 from dku_utils.access import _has_not_blank_property, _is_none_or_blank
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
+
+
+def configure_control_plane_proxy(kube_config_path, bypass_proxy=False):
+    """Optionally bypass an environment proxy for the selected control plane."""
+    if not bypass_proxy or not any(os.environ.get(key, '').strip() for key in
+                                 ("HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy")):
+        return
+    if not kube_config_path:
+        logging.warning("Cannot configure control-plane proxy bypass: no kubeconfig path; keeping existing proxy settings")
+        return
+
+    try:
+        config = json.loads(subprocess.check_output([
+            "kubectl", "--kubeconfig", kube_config_path,
+            "config", "view", "--minify", "-o", "json",
+        ], universal_newlines=True, stderr=subprocess.PIPE))
+        clusters = config.get("clusters") or []
+        if len(clusters) != 1:
+            logging.warning("Cannot configure control-plane proxy bypass: kubeconfig has no selected cluster; keeping existing proxy settings")
+            return
+        cluster = clusters[0].get("cluster", {})
+        if cluster.get("proxy-url"):
+            logging.info("Skipping control-plane proxy bypass: preserving explicit kubeconfig proxy-url")
+            return
+        server = urlsplit(cluster.get("server", ""))
+        if server.scheme not in ("http", "https") or not server.hostname:
+            logging.warning("Cannot configure control-plane proxy bypass: selected cluster has no valid server URL; keeping existing proxy settings")
+            return
+    except (OSError, subprocess.CalledProcessError, ValueError) as e:
+        logging.warning("Cannot configure control-plane proxy bypass; keeping existing proxy settings: %s", e)
+        return
+
+    if not any(os.environ.get(key, '').strip() for key in
+               (server.scheme.upper() + "_PROXY", server.scheme + "_proxy")):
+        return
+
+    hosts = [
+        host.strip()
+        for key in ("no_proxy", "NO_PROXY")
+        for host in os.environ.get(key, "").split(",")
+        if host.strip()
+    ]
+    if server.hostname not in hosts:
+        hosts.append(server.hostname)
+    no_proxy = "*" if "*" in hosts else ",".join(hosts)
+    os.environ["NO_PROXY"] = no_proxy
+    os.environ["no_proxy"] = no_proxy
+    logging.info("Configured proxy bypass for control-plane host %s", server.hostname)
 
 def get_first_kube_config(kube_config_path=None):
     if kube_config_path is None:

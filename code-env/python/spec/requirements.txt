@@ -6,3 +6,4 @@ googleapis-common-protos
 oauth2client
 PyYAML
 ipaddress==1.0.23
+PySocks

@@ -3,6 +3,7 @@ import dataiku
 import yaml
 from dku_google.auth import get_credentials_from_json_or_file
 from dku_google.clusters import Clusters
+from dku_kube.kubeconfig import configure_control_plane_proxy
 from dataiku.core.intercom import backend_json_call
 from dku_utils.access import _has_not_blank_property
 import json, logging, re
@@ -69,6 +70,9 @@ def get_cluster_from_dss_cluster(dss_cluster_id):
         definition_level = 'regional'
         
     cluster = clusters.get_cluster(cluster_name, definition_level)
+
+    kube_config_path = dss_cluster_settings.get_raw().get('containerSettings', {}).get('executionConfigsGenericOverrides', {}).get('kubeConfigPath')
+    configure_control_plane_proxy(kube_config_path, dss_cluster_config['config'].get("bypassControlPlaneProxy", False))
 
     return cluster_data, cluster, dss_cluster_settings, dss_cluster_config
     
