@@ -1,14 +1,17 @@
 {
-    "id": "gke-clusters",
-    "version": "1.5.1",
-    "meta": {
-        "label": "GKE clusters",
-        "description": "Interact with Google Kubernetes Engine clusters",
-        "author": "Dataiku",
-        "icon": "icon-gcp-kubernetes-engine icon-cloud",
-        "licenseInfo": "Apache Software License",
-        "url": "https://github.com/dataiku/dss-plugin-gke-clusters",
-        "tags": ["Infra", "Google"],
-        "supportLevel": "TIER2_SUPPORT"
-    }
+  "id": "gke-clusters",
+  "version": "1.6.0",
+  "meta": {
+    "label": "GKE clusters",
+    "description": "Interact with Google Kubernetes Engine clusters",
+    "author": "Dataiku",
+    "icon": "icon-gcp-kubernetes-engine icon-cloud",
+    "licenseInfo": "Apache Software License",
+    "url": "https://github.com/dataiku/dss-plugin-gke-clusters",
+    "tags": [
+      "Infra",
+      "Google"
+    ],
+    "supportLevel": "TIER2_SUPPORT"
+  }
 }
