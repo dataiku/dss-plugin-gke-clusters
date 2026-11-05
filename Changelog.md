@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.6.0 - Feature release
+- Add support for HTTP proxies configured through environment variables
+- Add an option to bypass the proxy for the Kubernetes control plane when creating or attaching clusters and running plugin macros
+
 ## Version 1.5.1 - Bugfix release
 - Fix an issue when starting a GKE cluster
 
